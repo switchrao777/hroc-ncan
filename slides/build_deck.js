@@ -243,6 +243,28 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   s.addNotes("This is the concept everything hangs on. The autoencoder replaces hand-picked features: it learns its own 48-number fingerprint of the cortical trace by having to compress and then rebuild the signal. Phase 1 is unsupervised — it never sees an H-reflex label. Phase 2 freezes that fingerprint and tests whether the H-reflex can be read off it. Think nonlinear PCA that discovers its own axes.");
 })();
 
+// ============================================================ 8.5 · HOW TO READ
+(() => {
+  const s = p.addSlide(); bg(s, WHITE);
+  kicker(s, "Plain English — a quick cheat sheet");
+  title(s, "How to read the next three slides");
+  const cells = [
+    ["The fingerprint", VIOLET, "48 numbers the model invents to summarize each brain trace. Nobody tells it what to look for — it finds its own summary."],
+    ["R²  (a 0-to-1 score)", TEAL, "How much of the reflex's trial-to-trial change the fingerprint can explain. 0 = nothing, 1 = perfect. We get 0.17 — weak but real, above chance."],
+    ["Drift", VIOLET, "How far the average brain state has moved from where it started at Baseline. A bigger number means the representation changed more."],
+    ["The catch", AMBER, "Some of that movement might come from the recording setup changing, not from learning. That's the one thing we still have to rule out."],
+  ];
+  const boxW=5.85, boxH=2.15, gapX=0.35, gapY=0.35, x0=0.7, y0=1.95;
+  cells.forEach((c,i)=>{
+    const cx = x0 + (i%2)*(boxW+gapX), cy = y0 + Math.floor(i/2)*(boxH+gapY);
+    card(s, cx, cy, boxW, boxH, i===3 ? "FEF3E2" : WHITE);
+    s.addShape(p.shapes.OVAL, { x:cx+0.32, y:cy+0.34, w:0.22, h:0.22, fill:{color:c[1]}, line:{type:"none"} });
+    s.addText(c[0], { x:cx+0.68, y:cy+0.26, w:boxW-1.0, h:0.45, fontFace:SANS, fontSize:18, bold:true, color:INK, margin:0 });
+    s.addText(c[2], { x:cx+0.35, y:cy+0.9, w:boxW-0.7, h:1.1, fontFace:SANS, fontSize:14.5, color:MUTED, lineSpacingMultiple:1.06, margin:0 });
+  });
+  s.addNotes("Quick cheat sheet before the results. Fingerprint = the model's self-invented 48-number summary of the brain signal. R-squared = how much of the reflex it can explain, 0 to 1, we get 0.17. Drift = how far the average brain state moved from baseline. And the catch: some of that drift might be recording-setup, not learning. Keep these four in mind for the next three slides.");
+})();
+
 // ============================================================ 9 · RESULT 1 (R2)
 (() => {
   const s = p.addSlide(); bg(s, WHITE);
