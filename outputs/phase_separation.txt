@@ -1,0 +1,5 @@
+Phase silhouette (want high): -0.0686
+Centroid drift from Baseline per phase:
+  Baseline        0.0000
+  Down-conditioning 28.4831
+  Post-conditioning 4.9752

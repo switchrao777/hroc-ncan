@@ -1,0 +1,67 @@
+# HROC autoencoder training config.
+# Tarun: to switch from the synthetic smoke test to real data, set
+#   data.use_synthetic: false
+#   data.zarr_path: /path/to/animal9.zarr
+# ...and nothing else needs to change.
+
+signal:
+  sample_rate_hz: 5000
+  window_samples: 150      # Animal 9 ERP window (30 ms). Use 250 for Animals 16/17.
+  ad2uv: 2.441406
+  mwave_ms: [2.0, 4.0]         # confirmed: experimenter log "MR interval: 2-4"
+  hreflex_ms: [6.0, 9.0]       # CONFIRMED for Animal 9: log says "HR interval: 6-9"
+                               # (empirical H peak ~6.8ms). NOT the 8-10 nominal.
+  # Matched window for the mean-rectified-amplitude label (Dr. Carp's spec).
+  # Set from the real trial-averaged waveform; fixed across ALL trials/phases.
+  hreflex_window_ms: [6.0, 9.0]
+  # Baseline for label correction: use the quiet post-response tail (20-30ms),
+  # NOT 0-2ms — the stimulus artifact dominates the first ~1.5ms of the window.
+  baseline_window_ms: [20.0, 30.0]
+
+data:
+  # REAL PATH (default): list every animal to pool. Add entries as converters
+  # finish. All ani-emg-eeg animals are 2006 format = 150-sample windows.
+  # Full roster (conditioned): 1 2 3 4 6 7 8 9 10 11 12 13 14 15  (no 5)
+  # Intermittent (unlabeled, Phase-1 only): 7i 8i 9i 10i 11i 12i 13i 14i 15i
+  animals:
+    - {id: "9",  zarr_path: "data/processed/animal9.zarr"}
+    # --- add as each converter finishes ---
+    # - {id: "6",  zarr_path: "data/processed/animal6.zarr"}
+    # - {id: "10", zarr_path: "data/processed/animal10.zarr"}
+    # - {id: "11", zarr_path: "data/processed/animal11.zarr"}
+    # - {id: "12", zarr_path: "data/processed/animal12.zarr"}
+    # - {id: "13", zarr_path: "data/processed/animal13.zarr"}
+    # - {id: "14", zarr_path: "data/processed/animal14.zarr"}
+    # - {id: "15", zarr_path: "data/processed/animal15.zarr"}
+    # - {id: "1"..."8"} likewise
+  common_window_samples: 150   # all 2006 format; no resampling needed within set
+
+  # fallbacks (leave animals empty to use these)
+  zarr_path: ""
+  use_synthetic: false         # true only for a no-data smoke test
+  n_trials_synthetic: 12000
+  n_animals_synthetic: 3
+  batch_size: 128
+  val_fraction: 0.15
+  num_workers: 0
+
+model:
+  encoder: conv_ae         # "conv_ae" (from scratch) | "brainbert" (pretrained-style)
+  latent_dim: 48           # Chad suggested 32-64
+  base_channels: 32        # conv_ae
+  # brainbert-only:
+  n_fft: 32
+  hop: 8
+  d_model: 128
+  n_heads: 4
+  n_layers: 4
+  brainbert_weights: ""    # path to real BrainBERT checkpoint (optional)
+
+train:
+  phase1_epochs: 15
+  phase2_epochs: 15
+  lr: 0.001
+  weight_decay: 0.00001
+  grad_clip: 1.0
+  seed: 42
+  out_dir: outputs

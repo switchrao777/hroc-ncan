@@ -1,0 +1,12 @@
+torch>=2.0
+numpy>=1.24
+scipy
+scikit-learn
+matplotlib
+umap-learn
+zarr>=2.16
+pyyaml
+tqdm
+# for the real data path later:
+sqlalchemy
+pymysql

@@ -1,0 +1,23 @@
+# data — never commit
+data/raw/
+data/processed/
+*.MYD
+*.MYI
+*.frm
+*.zarr/
+
+# local MariaDB instance created for decoding (huge — never commit)
+.mariadb_data/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# checkpoints (large) — keep figures, drop weights when committing
+outputs/*.pt
+
+# os
+.DS_Store

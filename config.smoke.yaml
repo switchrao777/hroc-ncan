@@ -1,0 +1,46 @@
+# Smoke-test config — runs with NO real data, on any machine (Mac MPS / CPU / GPU).
+# Use this to confirm your setup works before the real data arrives:
+#   python scripts/run_all.py --config config.smoke.yaml
+# It fabricates 3 fake "animals" with different window lengths and runs the full
+# pipeline (both phases + all figures) in ~1-2 min. Everything is watermarked
+# SYNTHETIC. Once real Zarrs exist, use config.yaml instead.
+
+signal:
+  sample_rate_hz: 5000
+  window_samples: 150
+  ad2uv: 2.441406
+  mwave_ms: [2.0, 4.0]
+  hreflex_ms: [8.0, 10.0]
+  hreflex_window_ms: [7.0, 12.0]
+  baseline_window_ms: [0.0, 2.0]
+
+data:
+  animals: []              # empty -> use synthetic
+  use_synthetic: true
+  n_animals_synthetic: 3
+  n_trials_synthetic: 6000
+  common_window_samples: 200
+  zarr_path: ""
+  batch_size: 128
+  val_fraction: 0.15
+  num_workers: 0
+
+model:
+  encoder: conv_ae
+  latent_dim: 48
+  base_channels: 32
+  n_fft: 32
+  hop: 8
+  d_model: 128
+  n_heads: 4
+  n_layers: 4
+  brainbert_weights: ""
+
+train:
+  phase1_epochs: 10
+  phase2_epochs: 10
+  lr: 0.001
+  weight_decay: 0.00001
+  grad_clip: 1.0
+  seed: 42
+  out_dir: outputs

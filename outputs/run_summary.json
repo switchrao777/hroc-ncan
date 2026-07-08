@@ -1,0 +1,73 @@
+{
+  "config": {
+    "signal": {
+      "sample_rate_hz": 5000,
+      "window_samples": 150,
+      "ad2uv": 2.441406,
+      "mwave_ms": [
+        2.0,
+        4.0
+      ],
+      "hreflex_ms": [
+        6.0,
+        9.0
+      ],
+      "hreflex_window_ms": [
+        6.0,
+        9.0
+      ],
+      "baseline_window_ms": [
+        20.0,
+        30.0
+      ]
+    },
+    "data": {
+      "animals": [
+        {
+          "id": "9",
+          "zarr_path": "data/processed/animal9.zarr"
+        }
+      ],
+      "common_window_samples": 150,
+      "zarr_path": "",
+      "use_synthetic": false,
+      "n_trials_synthetic": 12000,
+      "n_animals_synthetic": 3,
+      "batch_size": 128,
+      "val_fraction": 0.15,
+      "num_workers": 0
+    },
+    "model": {
+      "encoder": "conv_ae",
+      "latent_dim": 48,
+      "base_channels": 32,
+      "n_fft": 32,
+      "hop": 8,
+      "d_model": 128,
+      "n_heads": 4,
+      "n_layers": 4,
+      "brainbert_weights": ""
+    },
+    "train": {
+      "phase1_epochs": 15,
+      "phase2_epochs": 15,
+      "lr": 0.001,
+      "weight_decay": 1e-05,
+      "grad_clip": 1.0,
+      "seed": 42,
+      "out_dir": "outputs"
+    }
+  },
+  "results": {
+    "silhouette": -0.06856182962656021,
+    "animal_silhouette": null,
+    "drift": [
+      0.0,
+      28.483078002929688,
+      4.975184440612793,
+      NaN,
+      NaN,
+      NaN
+    ]
+  }
+}
