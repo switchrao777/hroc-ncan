@@ -177,9 +177,9 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   s.addText("We read the experimenter's own typed log from 2006 to find when each phase began — then tagged all 283k trials by time.",
     { x:0.7, y:1.75, w:11.9, h:0.7, fontFace:SANS, fontSize:16, color:INK, lineSpacingMultiple:1.05, margin:0 });
   // phase cards with counts
-  const ph = [["Baseline","149,064","Setup + characterize the reflex", MUTED],
-              ["Down-conditioning","55,397","Cord trained to shrink the reflex", VIOLET],
-              ["Post","78,854","After conditioning stopped", TEAL]];
+  const ph = [["Baseline","149,064","Before conditioning onset", MUTED],
+              ["Down-cond early","71,743","Conditioning underway", VIOLET],
+              ["Down-cond late","62,508","Effect fully developed", TEAL]];
   let x=0.7;
   ph.forEach(([name,n,desc,col])=>{
     card(s, x, 2.75, 3.87, 2.4);
@@ -191,9 +191,9 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   // arrow-ish flow dots
   card(s, 0.7, 5.5, 11.9, 1.25, "F5F3FF");
   s.addText([
-    { text:"Key detail:  ", options:{ bold:true, color:VIOLET } },
-    { text:"Animal 9 ran Baseline → Down-conditioning → Post — NOT the full 6-phase protocol. We verified the phase boundaries against the authoritative database schema, so these labels are trustworthy.", options:{ color:INK } },
-  ], { x:1.0, y:5.72, w:11.3, h:0.9, fontFace:SANS, fontSize:14.5, valign:"middle", lineSpacingMultiple:1.03, margin:0 });
+    { text:"Corrected boundaries:  ", options:{ bold:true, color:VIOLET } },
+    { text:"the log's “stopped conditioning” note is misleading — the reflex keeps dropping long after it, so conditioning actually continued. We anchor the boundary on the documented conditioning ONSET and split early/late by time.", options:{ color:INK } },
+  ], { x:1.0, y:5.72, w:11.3, h:0.9, fontFace:SANS, fontSize:14, valign:"middle", lineSpacingMultiple:1.03, margin:0 });
   s.addNotes("The phase labels were listed as an open blocker. I recovered them from the type-15 entries in the experimenter's log — markers like 'Start HRdown' and 'Stopped conditioning' — and mapped every trial by timestamp. Important: Animal 9 only ran Baseline, down-conditioning, and post. And I later verified against the real schema file, so the boundaries are solid.");
 })();
 
@@ -250,9 +250,9 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   title(s, "How to read the next three slides");
   const cells = [
     ["The fingerprint", VIOLET, "48 numbers the model invents to summarize each brain trace. Nobody tells it what to look for — it finds its own summary."],
-    ["R²  (a 0-to-1 score)", TEAL, "How much of the reflex's trial-to-trial change the fingerprint can explain. 0 = nothing, 1 = perfect. We get 0.17 — weak but real, above chance."],
+    ["R²  (a 0-to-1 score)", TEAL, "How much of the reflex the fingerprint can explain. 0 = nothing, 1 = perfect. After controlling for the stimulus it's ~0.04 — small but real."],
     ["Drift", VIOLET, "How far the average brain state has moved from where it started at Baseline. A bigger number means the representation changed more."],
-    ["The catch", AMBER, "Some of that movement might come from the recording setup changing, not from learning. That's the one thing we still have to rule out."],
+    ["The M-wave control", AMBER, "The reflex depends on stimulus strength. We divide by (or remove) the M-wave everywhere, so we measure learning, not stimulus."],
   ];
   const boxW=5.85, boxH=2.15, gapX=0.35, gapY=0.35, x0=0.7, y0=1.95;
   cells.forEach((c,i)=>{
@@ -265,62 +265,67 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   s.addNotes("Quick cheat sheet before the results. Fingerprint = the model's self-invented 48-number summary of the brain signal. R-squared = how much of the reflex it can explain, 0 to 1, we get 0.17. Drift = how far the average brain state moved from baseline. And the catch: some of that drift might be recording-setup, not learning. Keep these four in mind for the next three slides.");
 })();
 
-// ============================================================ 9 · RESULT 1 (R2)
+// ============================================================ 9 · BEHAVIOR (learning curve)
 (() => {
   const s = p.addSlide(); bg(s, WHITE);
-  kicker(s, "Result 1", TEAL);
-  title(s, "The fingerprint really does carry the reflex");
-  const [w,h] = imgFit(1.56, 6.6, 3.9);
-  img(s, "phase2_loss.png", 0.7, 2.0, w, h);
-  // big stat + read
-  card(s, 7.7, 2.1, 4.9, 2.05, CARD);
-  s.addText("R² = 0.17", { x:7.7, y:2.28, w:4.9, h:0.95, align:"center", fontFace:SERIF, fontSize:46, bold:true, color:TEAL, margin:0 });
-  s.addText("brain fingerprint → H-reflex, frozen encoder", { x:7.7, y:3.25, w:4.9, h:0.7, align:"center", fontFace:SANS, fontSize:13.5, color:MUTED, margin:0 });
+  kicker(s, "Result 1 · the behaviour is real", TEAL);
+  title(s, "Down-conditioning worked — the textbook curve");
+  const [w,h] = imgFit(2.82, 8.0, 3.5);
+  img(s, "confound/learning_curve.png", 0.65, 2.0, w, h);
+  card(s, 8.9, 2.1, 3.75, 4.15, "F5F3FF");
+  s.addText("Why H/M, not raw H", { x:9.15, y:2.35, w:3.3, h:0.35, fontFace:SANS, fontSize:14, bold:true, color:VIOLET, margin:0 });
+  s.addText("The reflex (H) depends on how hard you stimulate. So we divide by the M-wave — the direct-muscle response in the same trace — exactly as the Wolpaw lab does.",
+    { x:9.15, y:2.8, w:3.35, h:1.6, fontFace:SANS, fontSize:13.5, color:INK, lineSpacingMultiple:1.05, margin:0 });
   s.addText([
-    { text:"Read it honestly. ", options:{ bold:true, color:INK } },
-    { text:"The cortical fingerprint predicts ~17% of the reflex's variation — with no labels during learning. Modest, but real and well above chance.", options:{ color:INK } },
-  ], { x:7.7, y:4.35, w:4.9, h:1.5, fontFace:SANS, fontSize:14.5, lineSpacingMultiple:1.05, margin:0 });
-  s.addText("On synthetic data this was 0.90 — only because that data was built to encode the reflex. 0.17 is the real cortex.",
-    { x:7.7, y:5.95, w:4.9, h:0.9, fontFace:SANS, fontSize:12.5, italic:true, color:AMBER, lineSpacingMultiple:1.03, margin:0 });
-  s.addNotes("Here's the test that makes the fingerprint trustworthy. Freeze the model, ask a tiny predictor to read the H-reflex off the fingerprint. R-squared 0.17 on real cortex. The green line climbing is it getting better at reading the reflex. It's far below the synthetic 0.90 — but that's expected and honest: the synthetic ECoG was built to encode the reflex; real cortex is far noisier. 0.17 with zero labels during learning is a genuine signal.");
+    { text:"H/M falls 1.17 → 0.59", options:{ bold:true, color:INK } },
+    { text:" (median down to 0.18). Right panel: the stimulus drifted UP over the same weeks — which is exactly why raw H is invalid.", options:{ color:INK } },
+  ], { x:9.15, y:4.5, w:3.35, h:1.7, fontFace:SANS, fontSize:13.5, lineSpacingMultiple:1.05, margin:0 });
+  s.addNotes("Start the results with the behaviour, because it's the cleanest thing we have. Left: H/M ratio over time — flat at baseline, then a steady drop to about 0.18. That's textbook successful down-conditioning. Crucial point: we use H/M, not raw H, because the H-reflex depends on stimulus strength — and the right panel shows the stimulus drifted up over the same period. That's why an earlier raw-H plot looked backwards; it was plotting stimulus, not learning. This slide is the fix.");
 })();
 
-// ============================================================ 10 · RESULT 2 (DRIFT)
+// ============================================================ 10 · CONFOUND TEST (drift)
 (() => {
   const s = p.addSlide(); bg(s, WHITE);
-  kicker(s, "Result 2 · the headline", VIOLET);
-  title(s, "The cortical fingerprint drifts as the cord learns");
-  const [w,h] = imgFit(1.6, 7.2, 4.1);
-  img(s, "centroid_drift.png", 0.7, 1.95, w, h);
-  card(s, 8.4, 2.1, 4.2, 4.3, "F5F3FF");
-  s.addText("What you're seeing", { x:8.65, y:2.35, w:3.7, h:0.35, fontFace:SANS, fontSize:14, bold:true, color:VIOLET, margin:0 });
-  s.addText("Each point = how far that phase's average brain fingerprint sits from Baseline.",
-    { x:8.65, y:2.8, w:3.75, h:1.0, fontFace:SANS, fontSize:14.5, color:INK, lineSpacingMultiple:1.05, margin:0 });
+  kicker(s, "Result 2 · the test that settles it", VIOLET);
+  title(s, "Does the cortical drift survive the stimulus?");
+  const [w,h] = imgFit(1.63, 7.1, 4.1);
+  img(s, "confound/drift_confound_control.png", 0.65, 1.95, w, h);
+  card(s, 8.35, 2.1, 4.3, 4.3, "F5F3FF");
+  s.addText("The critical control", { x:8.6, y:2.35, w:3.8, h:0.35, fontFace:SANS, fontSize:14, bold:true, color:VIOLET, margin:0 });
+  s.addText("We mathematically remove the M-wave (stimulus) from the brain fingerprint, then re-measure the drift.",
+    { x:8.6, y:2.8, w:3.85, h:1.1, fontFace:SANS, fontSize:14, color:INK, lineSpacingMultiple:1.05, margin:0 });
   s.addText([
-    { text:"It jumps to 28.5 during down-conditioning, then falls back to 5.0 once conditioning stops.", options:{ bold:true, color:INK } },
-  ], { x:8.65, y:3.95, w:3.75, h:1.4, fontFace:SANS, fontSize:15, lineSpacingMultiple:1.08, margin:0 });
-  s.addText("The representation moves while the cord is learning — and partly recovers after. That's the effect we came to find.",
-    { x:8.65, y:5.35, w:3.75, h:1.0, fontFace:SANS, fontSize:13, italic:true, color:VIOLET, lineSpacingMultiple:1.05, margin:0 });
-  s.addNotes("This is the research question in one picture. Each phase's average cortical fingerprint, distance from baseline. It climbs sharply during down-conditioning and returns toward baseline afterward. The brain representation shifts as the cord learns and partly recovers when training stops. On a clean dataset, this figure is the paper. But — next slide — there's a confound to resolve first.");
+    { text:"The two lines barely move apart. ", options:{ bold:true, color:INK } },
+    { text:"The cortical drift is NOT a stimulus artifact — it's real.", options:{ color:INK } },
+  ], { x:8.6, y:4.0, w:3.85, h:1.2, fontFace:SANS, fontSize:14, lineSpacingMultiple:1.05, margin:0 });
+  s.addText("Caveat: the shift is biggest at conditioning onset, not steadily growing — cortex reacts to the new task, doesn't simply mirror reflex size.",
+    { x:8.6, y:5.2, w:3.85, h:1.1, fontFace:SANS, fontSize:12, italic:true, color:AMBER, lineSpacingMultiple:1.03, margin:0 });
+  s.addNotes("This is the test a reviewer will demand. The worry: if the stimulus drove both the reflex and the cortex, the drift is meaningless. So we regress the M-wave out of the brain fingerprint and recompute. The grey and purple lines sit right on top of each other — removing the stimulus barely changes the drift. So the cortical change is real, not a stimulus artifact. Honest caveat: the drift is largest at conditioning onset and then eases, so the cortex is reacting to the task rather than tracking the reflex size step for step.");
 })();
 
-// ============================================================ 11 · CAVEAT
+// ============================================================ 11 · R2 HONEST
 (() => {
   const s = p.addSlide(); bg(s, WHITE);
-  kicker(s, "The honest caveat — read this", AMBER);
-  title(s, "Is the drift learning, or just session state?");
-  const [w,h] = imgFit(1.6, 6.4, 3.9);
-  img(s, "hreflex_by_phase.png", 0.7, 2.0, w, h);
-  card(s, 7.5, 2.1, 5.1, 4.35, "FEF3E2");
-  s.addText("The problem", { x:7.75, y:2.35, w:4.6, h:0.35, fontFace:SANS, fontSize:14, bold:true, color:AMBER, margin:0 });
-  s.addText("Down-conditioning should make the H-reflex SMALLER. But in the data it's larger during down-conditioning than at Baseline.",
-    { x:7.75, y:2.78, w:4.65, h:1.15, fontFace:SANS, fontSize:14.5, color:INK, lineSpacingMultiple:1.05, margin:0 });
-  s.addText("Most likely why:", { x:7.75, y:3.95, w:4.6, h:0.35, fontFace:SANS, fontSize:14, bold:true, color:INK, margin:0 });
-  s.addText("our 'Baseline' is really the setup period — the log shows the stimulus being constantly re-tuned, so responses there are smaller and inconsistent.",
-    { x:7.75, y:4.35, w:4.65, h:1.15, fontFace:SANS, fontSize:14, color:INK, lineSpacingMultiple:1.05, margin:0 });
-  s.addText("So part of the cortical drift may track session state (fixed-stimulus, active recording) rather than learning itself. #1 thing to resolve.",
-    { x:7.75, y:5.5, w:4.65, h:0.9, fontFace:SANS, fontSize:12.5, italic:true, bold:true, color:AMBER, lineSpacingMultiple:1.03, margin:0 });
-  s.addNotes("I want to be upfront. The H-reflex is HIGHER during down-conditioning, which is backwards — down-conditioning should shrink it. The likely reason: the 'Baseline' block is really the setup/characterization period, where the stimulus intensity is still being tuned (the log is full of TARG adjustments). So the cortical drift might partly reflect overall session state rather than the learning. This is the single most important thing to nail down before we call it a cortical correlate of conditioning — and it's exactly where I need your input.");
+  kicker(s, "Result 3 · reading the reflex from cortex", TEAL);
+  title(s, "Can the brain predict the reflex? A little — honestly");
+  s.addText("We test how much of the reflex each source explains, using the same M-wave control. Three numbers, side by side:",
+    { x:0.7, y:1.75, w:11.9, h:0.6, fontFace:SANS, fontSize:15.5, color:INK, lineSpacingMultiple:1.03, margin:0 });
+  const stats = [
+    ["0.20", "Stimulus alone\n(M-wave → reflex)", AMBER, "The stimulus explains most of it. This is the confound."],
+    ["0.05", "Cortex, raw\n(fingerprint → reflex)", MUTED, "A weak link on its own."],
+    ["0.04", "Cortex, stimulus removed", VIOLET, "Survives the control — small but genuinely there."],
+  ];
+  let x=0.7;
+  stats.forEach(([n,l,col,d])=>{
+    card(s, x, 2.55, 3.87, 3.7);
+    s.addText(n, { x:x, y:2.9, w:3.87, h:1.0, align:"center", fontFace:SERIF, fontSize:52, bold:true, color:col, margin:0 });
+    s.addText(l, { x:x+0.2, y:3.95, w:3.47, h:0.85, align:"center", fontFace:SANS, fontSize:14.5, bold:true, color:INK, lineSpacingMultiple:1.0, margin:0 });
+    s.addText(d, { x:x+0.25, y:4.95, w:3.37, h:1.1, align:"center", fontFace:SANS, fontSize:13, color:MUTED, lineSpacingMultiple:1.05, margin:0 });
+    x+=4.08;
+  });
+  s.addText("The earlier R²≈0.17 was inflated — it rode on shared stimulus variance. The honest cortex-only contribution is ~0.04.",
+    { x:0.7, y:6.55, w:11.9, h:0.5, fontFace:SANS, fontSize:13, italic:true, color:AMBER, margin:0 });
+  s.addNotes("The prediction result, done honestly. We ask how much of the reflex each thing explains. The stimulus alone explains 0.20 — that's the confound, and it's the biggest piece. The cortex on its own is only 0.05. And when we remove the stimulus, the cortex's unique contribution is 0.04 — small, but it survives the control, so it's genuinely there. Important honesty point: the 0.17 I showed earlier was inflated because the cortical window contains a stimulus-evoked response; once you control for the stimulus, the real cortex-to-reflex link is modest.");
 })();
 
 // ============================================================ 12 · ASSESSMENT
@@ -329,9 +334,9 @@ function imgFit(ratio, maxW, maxH){ // returns [w,h] preserving ratio inside box
   kicker(s, "Where we stand");
   title(s, "Is this good progress? My honest scorecard");
   const items = [
-    ["Infrastructure","STRONG", GREEN, "Real data flows end to end — decode, phase labels, training, analysis. Reproducible, on a laptop. This was the hard part and it's done."],
-    ["First real signal","PROMISING", TEAL, "The fingerprint predicts the reflex above chance (R²=0.17) and the representation clearly moves during conditioning."],
-    ["A publishable claim","NOT YET", AMBER, "Needs the baseline confound resolved, proper statistics, and more animals. Today is a strong foundation, not a result."],
+    ["Infrastructure + behaviour","STRONG", GREEN, "Real data end to end, and the behaviour is textbook: down-conditioning worked (H/M fell to ~0.18). Reproducible on a laptop."],
+    ["Cortical effect","REAL BUT MODEST", TEAL, "The cortical drift survives removing the stimulus — not an artifact. But the cortex→reflex link is small (~0.04) and onset-driven."],
+    ["A publishable claim","NOT YET", AMBER, "Needs more animals, up-conditioning controls, and statistics on the drift. One animal, one direction — a strong foundation, not a result."],
   ];
   let x=0.7;
   items.forEach(([t,badge,col,desc])=>{
