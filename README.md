@@ -1,12 +1,18 @@
 # HROC Autoencoder Training Pipeline
 
-The end-to-end model-training machine for the NCAN / Wolpaw-lab HROC project —
-the two-phase autoencoder Chad recommended, built so it runs **today** on
-synthetic data and needs **one config flag** to switch to the real Animal-9 Zarr
-store.
+> **STATUS (2026-07-07): now trained on REAL Animal 9 data, end to end.**
+> All 283,315 real trials decoded, phase-labeled, and run through both training
+> phases. **See [REAL_RESULTS.md](REAL_RESULTS.md) for the numbers** and
+> [slides/HROC_Carp_Update_Animal9.pdf](slides/HROC_Carp_Update_Animal9.pdf) for
+> the plain-language walkthrough. Figures are in `outputs/`. The sections below
+> describe the pipeline itself (originally written for the synthetic smoke test).
 
-Built by Suchith. Tarun: this doc is your starting point. Read it top to bottom,
-run the smoke test, then pick up the "Your tasks" section.
+The end-to-end model-training machine for the NCAN / Wolpaw-lab HROC project —
+the two-phase autoencoder Chad recommended. It runs on synthetic data with no
+setup, and (as of the status note above) on the real Animal-9 Zarr store.
+
+Built by Suchith. Tarun: read [SETUP.md](SETUP.md) then this doc; run the smoke
+test, then pick up the "Your tasks" section.
 
 ---
 
