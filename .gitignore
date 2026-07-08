@@ -21,3 +21,6 @@ outputs/*.pt
 
 # os
 .DS_Store
+
+# slide QA renders
+slide-*.jpg
