@@ -77,28 +77,20 @@ def load_times(n_expected: int):
 
 
 # ----------------------------------------------------------------- phases
-# Documented conditioning ONSET (type-15 "Start HRdown"). We deliberately do NOT
-# use the unreliable "Stopped conditioning" marker.
-HRDOWN_ONSET_UNIX = 1148563194
-PHASE_NAMES = {0: "Baseline", 1: "Down-cond (early)", 2: "Down-cond (late)"}
+PHASE_NAMES = {0: "Baseline", 1: "Cond (early)", 2: "Cond (late)"}
 
 
-def corrected_phases(t: np.ndarray):
-    """0=Baseline (pre-onset), 1=early down-cond, 2=late down-cond (split at the
-    midpoint of the conditioning span). Falls back to terciles if times are a
-    plain index proxy."""
-    if t.max() > 1e6:  # real unix times
-        onset = HRDOWN_ONSET_UNIX
-        cond = t >= onset
-        ph = np.zeros(len(t), dtype=np.int64)
-        if cond.any():
-            mid = (t[cond].min() + t.max()) // 2
-            ph[cond & (t < mid)] = 1
-            ph[cond & (t >= mid)] = 2
-        return ph
-    # fallback: terciles by order
-    q = np.quantile(t, [1/3, 2/3])
-    return np.digitize(t, q).astype(np.int64)
+def corrected_phases(t: np.ndarray, onset: int):
+    """0=Baseline (pre-onset), 1=early conditioning, 2=late conditioning (split at
+    the midpoint of the conditioning span). `onset` is a unix time (or an index if
+    `t` is an index proxy). Derived per-animal from the Zarr `phase` array."""
+    cond = t >= onset
+    ph = np.zeros(len(t), dtype=np.int64)
+    if cond.any():
+        mid = (t[cond].min() + t.max()) // 2
+        ph[cond & (t < mid)] = 1
+        ph[cond & (t >= mid)] = 2
+    return ph
 
 
 # ----------------------------------------------------------------- regression utils
@@ -167,9 +159,15 @@ def main():
     r = zarr.open(args.zarr, mode="r")
     emg = np.asarray(r["emg"]); ecog = r["ecog"]
     N = emg.shape[0]
-    t = load_times(N)
+    direction = r.attrs.get("direction", "unknown")
+    animal = r.attrs.get("animal", "?")
+    # times: prefer the `time` array in the Zarr; else fall back to DB / index
+    t = np.asarray(r["time"]) if "time" in r else load_times(N)
+    zphase = np.asarray(r["phase"]) if "phase" in r else np.zeros(N, dtype=np.int64)
+    # onset (unix) = first conditioning-phase trial time, derived per-animal
+    onset = int(t[zphase > 0].min()) if (zphase > 0).any() else int(np.median(t))
     M, H = per_trial_measures(emg)
-    ph = corrected_phases(t)
+    ph = corrected_phases(t, onset)
 
     # robust H/M: ignore trials with tiny M (unstable ratio)
     m_ok = M > np.percentile(M, 10)
@@ -178,7 +176,7 @@ def main():
     report = []
     def say(s): print(s); report.append(s)
 
-    say("=== CONFOUND CONTROL — Animal 9 ===")
+    say(f"=== CONFOUND CONTROL — Animal {animal} ({direction}-conditioned) ===")
     say(f"trials: {N}")
     for p in sorted(set(ph.tolist())):
         m = ph == p
@@ -191,7 +189,7 @@ def main():
         days = np.arange(day.max() + 1)
         hm_d = np.array([np.nanmedian(HM[day == d]) if (day == d).any() else np.nan for d in days])
         m_d = np.array([np.nanmedian(M[day == d]) if (day == d).any() else np.nan for d in days])
-        onset_day = (HRDOWN_ONSET_UNIX - t.min()) // 86400
+        onset_day = (onset - t.min()) // 86400
         fig, ax = plt.subplots(1, 2, figsize=(13, 4.6))
         ax[0].plot(days, hm_d, "-o", color=VIOLET, ms=4)
         ax[0].axvline(onset_day, color=AMBER, ls="--", lw=2, label="conditioning onset")

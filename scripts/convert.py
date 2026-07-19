@@ -108,42 +108,44 @@ def decode_trial(raw: bytes) -> dict:
 
 
 # ------------------------------------------------------------------ HOOK 3  (DONE)
-# Phase names by id. Animal 9 ran Baseline -> Down-conditioning -> Post (NOT the
-# full 6-phase protocol). Other animals may add up-conditioning / freely-running;
-# extend PHASE_MARKERS below if their logs contain those markers.
-PHASE_NAMES = {0: "Baseline", 1: "HRdown", 2: "Post"}
+# Two phases only: 0 = Baseline (before conditioning), 1 = Conditioning (after the
+# onset marker). We deliberately DROP the old "Post" phase — the log's "stopped
+# conditioning" marker is unreliable (the reflex keeps changing after it). Onset is
+# taken from the FIRST "Start HRdown"/"Start HRup" marker, which also gives the
+# conditioning DIRECTION (down vs up) — the variable the multi-animal contrast needs.
+PHASE_NAMES = {0: "Baseline", 1: "Conditioning"}
 
-# Regex -> phase id. Scanned against type-15 log text, in chronological order, to
-# find the timestamp where each phase BEGINS. Baseline (0) is implicit from start.
 import re
-PHASE_MARKERS = [
-    (re.compile(r"start\s*hrdown", re.I), 1),      # down-conditioning begins
-    (re.compile(r"stopped\s*conditioning", re.I), 2),  # post-conditioning begins
-    # (re.compile(r"start\s*hrup", re.I), <id>),   # add for animals with up-cond
-]
+_ONSET = re.compile(r"start\s*hr\s*(down|up)", re.I)
+_UP = re.compile(r"\bhr\s*up\b|up-?cond", re.I)
+_DOWN = re.compile(r"\bhr\s*down\b|down-?cond", re.I)
 
 
 def parse_phases(engine):
-    """Return sorted phase intervals [(start_unix, phase_id), ...] from type-15 log.
-
-    Baseline (phase 0) is implicit from the session start. Each PHASE_MARKER match
-    opens a new phase at its log timestamp. A trial is assigned the phase of the
-    latest boundary at or before its own `time`.
-    """
+    """Return (boundaries, direction). boundaries = [(unix_time, phase_id), ...];
+    direction in {'down','up','unknown'} from the first onset marker."""
     from sqlalchemy import text
     with engine.connect() as c:
         rows = c.execute(text(
             f"SELECT time, text FROM {LOG_TABLE} WHERE type = 15 ORDER BY time"
         )).fetchall()
 
-    boundaries = [(0, 0)]  # (unix_time, phase_id): phase 0 from the beginning
+    boundaries = [(0, 0)]                 # phase 0 (baseline) from the beginning
+    direction = "unknown"
     for t, txt in rows:
-        for rx, pid in PHASE_MARKERS:
-            if rx.search(txt or ""):
-                boundaries.append((int(t), pid))
-                break
+        m = _ONSET.search(txt or "")
+        if m and len(boundaries) == 1:    # first onset opens the conditioning phase
+            boundaries.append((int(t), 1))
+            direction = "up" if m.group(1).lower() == "up" else "down"
+    # fallback: some logs write the direction without the word "start"
+    if direction == "unknown":
+        allo = " ".join((txt or "") for _, txt in rows)
+        if _UP.search(allo) and not _DOWN.search(allo):
+            direction = "up"
+        elif _DOWN.search(allo) and not _UP.search(allo):
+            direction = "down"
     boundaries.sort()
-    return boundaries
+    return boundaries, direction
 
 
 def assign_phase(ts: int, boundaries) -> int:
@@ -165,8 +167,8 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
     from sqlalchemy import create_engine
     eng = create_engine(dsn)
 
-    boundaries = parse_phases(eng)                  # HOOK 3 (type-15 log)
-    print(f"[convert] phase boundaries (unix_time -> phase): {boundaries}")
+    boundaries, direction = parse_phases(eng)       # HOOK 3 (type-15 log)
+    print(f"[convert] direction={direction}  boundaries(unix->phase)={boundaries}")
 
     ecog, emg, phase, times = [], [], [], []
     for i, (tid, raw, ts) in enumerate(iter_raw_trials(eng)):
@@ -206,8 +208,10 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
     _write("phase", phase)
     _write("time", time_arr)                         # unix seconds per trial
     _write("day", day.astype(np.int64))              # day index for drift-per-day
-    print(f"[convert] animal {animal_id}: wrote {ecog.shape[0]} trials "
-          f"({day.max()+1} days) -> {out}")
+    root.attrs["direction"] = direction              # 'down' | 'up' | 'unknown'
+    root.attrs["animal"] = str(animal_id)
+    print(f"[convert] animal {animal_id} ({direction}-conditioned): "
+          f"wrote {ecog.shape[0]} trials ({day.max()+1} days) -> {out}")
     # per-phase counts for the human
     for p in sorted(set(phase.tolist())):
         print(f"   phase {p} ({PHASE_NAMES.get(p,'?')}): {(phase == p).sum()} trials")

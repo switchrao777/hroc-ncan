@@ -37,7 +37,6 @@ M_WIN = slice(13, 23)     # 2.6–4.6 ms
 H_WIN = slice(30, 45)     # 6–9 ms
 BASE_WIN = slice(100, 150)  # 20–30 ms quiet tail
 BLOCK_DAYS = 5
-HRDOWN_ONSET_UNIX = 1148563194
 
 
 def measures(emg):
@@ -94,14 +93,18 @@ def main():
     if "day" not in r:
         sys.exit("no `day` array — run scripts/add_timestamps.py first")
     day = np.asarray(r["day"]); time = np.asarray(r["time"])
+    phase = np.asarray(r["phase"]) if "phase" in r else np.zeros(len(day), dtype=np.int64)
+    direction = r.attrs.get("direction", "unknown")
+    animal = r.attrs.get("animal", "?")
     M, H = measures(emg)
     m_ok = M > np.percentile(M, 10)
     HM = np.full(len(M), np.nan); HM[m_ok] = H[m_ok] / M[m_ok]
-    onset_day = int((HRDOWN_ONSET_UNIX - time.min()) // 86400)
+    # onset = first day of the conditioning phase (phase>0), derived per-animal
+    onset_day = int(day[phase > 0].min()) if (phase > 0).any() else int(day.max() // 2)
 
     report = []; say = lambda s: (print(s), report.append(s))
-    say(f"=== DRIFT OVER TIME — Animal 9 ===\n{len(day)} trials, {day.max()+1} days, "
-        f"conditioning onset day {onset_day}")
+    say(f"=== DRIFT OVER TIME — Animal {animal} ({direction}-conditioned) ===\n"
+        f"{len(day)} trials, {day.max()+1} days, conditioning onset day {onset_day}")
 
     Z = extract_latents(cfg, ecog)
     Zres = residualize(Z, M)   # M-wave removed
