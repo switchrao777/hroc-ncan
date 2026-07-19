@@ -168,17 +168,22 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
     boundaries = parse_phases(eng)                  # HOOK 3 (type-15 log)
     print(f"[convert] phase boundaries (unix_time -> phase): {boundaries}")
 
-    ecog, emg, phase = [], [], []
+    ecog, emg, phase, times = [], [], [], []
     for i, (tid, raw, ts) in enumerate(iter_raw_trials(eng)):
         if limit and i >= limit:
             break
         d = decode_trial(raw)                       # HOOK 2
         ecog.append(d["ecog"]); emg.append(d["emg"])
         phase.append(assign_phase(int(ts), boundaries))
+        times.append(int(ts))                       # per-trial recording time
         if (i + 1) % 25000 == 0:
             print(f"[convert]   decoded {i+1} trials...")
     ecog = np.stack(ecog); emg = np.stack(emg)
     phase = np.array(phase, dtype=np.int64)
+    # recording time (unix s) + day index (0 = first recording day). `day`
+    # is what the drift-per-day analysis groups on — see scripts/confound_control.py.
+    time_arr = np.array(times, dtype=np.int64)
+    day = (time_arr - time_arr.min()) // 86400
 
     # label = mean rectified amplitude, matched window (Carp's spec)
     hreflex = compute_hreflex_label(
@@ -199,7 +204,10 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
     _write("emg", emg.astype(np.float32))
     _write("hreflex", hreflex.astype(np.float32))
     _write("phase", phase)
-    print(f"[convert] animal {animal_id}: wrote {ecog.shape[0]} trials -> {out}")
+    _write("time", time_arr)                         # unix seconds per trial
+    _write("day", day.astype(np.int64))              # day index for drift-per-day
+    print(f"[convert] animal {animal_id}: wrote {ecog.shape[0]} trials "
+          f"({day.max()+1} days) -> {out}")
     # per-phase counts for the human
     for p in sorted(set(phase.tolist())):
         print(f"   phase {p} ({PHASE_NAMES.get(p,'?')}): {(phase == p).sum()} trials")

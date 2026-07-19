@@ -24,3 +24,6 @@ outputs/*.pt
 
 # slide QA renders
 slide-*.jpg
+q-*.jpg
+~$*
+.Rhistory
