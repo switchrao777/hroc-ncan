@@ -116,7 +116,10 @@ def decode_trial(raw: bytes) -> dict:
 PHASE_NAMES = {0: "Baseline", 1: "Conditioning"}
 
 import re
-_ONSET = re.compile(r"start\s*hr\s*(down|up)", re.I)
+# Onset = first appearance of "HRdown"/"HRup" (the direction word right after HR).
+# Robust to phrasing: "Start HRdown" (animal 9) and "Started HRup conditioning"
+# (animal 12) both match; "HR interval: 6-9" does NOT (no down/up after HR).
+_ONSET = re.compile(r"hr\s*(down|up)", re.I)
 _UP = re.compile(r"\bhr\s*up\b|up-?cond", re.I)
 _DOWN = re.compile(r"\bhr\s*down\b|down-?cond", re.I)
 
@@ -136,7 +139,7 @@ def parse_phases(engine):
         m = _ONSET.search(txt or "")
         if m and len(boundaries) == 1:    # first onset opens the conditioning phase
             boundaries.append((int(t), 1))
-            direction = "up" if m.group(1).lower() == "up" else "down"
+            direction = m.group(1).lower()   # 'down' or 'up'
     # fallback: some logs write the direction without the word "start"
     if direction == "unknown":
         allo = " ".join((txt or "") for _, txt in rows)
