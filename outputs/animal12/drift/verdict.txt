@@ -1,0 +1,14 @@
+=== DRIFT OVER TIME — Animal 12 (up-conditioned) ===
+384972 trials, 120 days, conditioning onset day 59
+[fig] daily_waveform_qc.png
+[fig] drift_over_time.png
+  mean M-removed drift during conditioning = 19.12
+[fig] null_control.png
+  NULL sham max drift = 38.74   vs real conditioning 19.12  (ratio 0.5x)
+[fig] shuffle_test.png
+  shuffle test: real=19.12  null=0.61±0.03  p=0.0020  z=697.0
+
+=== VERDICT ===
+  drift above chance (shuffle)   : YES (p=0.0020)
+  null control stays ~flat       : NO — metric suspect (sham 38.74 vs real 19.12)
+  survives M-wave removal        : YES

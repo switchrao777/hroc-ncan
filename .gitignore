@@ -27,3 +27,5 @@ slide-*.jpg
 q-*.jpg
 ~$*
 .Rhistory
+outputs/**/trial_time.csv
+outputs/animal9_trial_time.csv

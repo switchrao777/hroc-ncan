@@ -1,0 +1,25 @@
+=== CONFOUND CONTROL — Animal 11 (down-conditioned) ===
+trials: 374825
+  Baseline           n=287699  M= 176.9  H= 119.6  H/M=1.079
+  Cond (early)       n= 87092  M= 235.9  H= 135.8  H/M=0.898
+  Cond (late)        n=    34  M= 110.9  H= 143.4  H/M=1.498
+
+[fig] learning_curve.png  (H/M 0.69 -> 1.29; M 97 -> 100)
+[fig] hm_vs_rawH_by_phase.png
+
+BEHAVIOR: H/M baseline=1.079 -> late-cond=1.498  => down-conditioning did NOT show
+
+=== does the CORTICAL effect survive removing the M-wave? ===
+  R2  stimulus (M -> H)            : 0.666
+  R2  cortex raw (Z -> H)          : 0.016
+  R2  cortex | M removed (partial) : 0.002   <-- the honest number
+  centroid drift from Baseline:
+    Baseline           raw=   0.00   M-removed=   0.00
+    Cond (early)       raw=  15.01   M-removed=  14.93
+    Cond (late)        raw=  28.60   M-removed=  28.37
+[fig] drift_confound_control.png
+
+=== VERDICT ===
+  behavioral down-conditioning real : NO
+  cortex->reflex beyond stimulus    : NO / collapses (partial R2=0.002 vs raw 0.016)
+  cortical drift beyond stimulus    : SURVIVES
