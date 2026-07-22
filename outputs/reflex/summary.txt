@@ -1,0 +1,8 @@
+animal dir      Mpk   Hpk  valid%   H base   H late   change
+animal9?        2.2   8.4    82.0    176.1     39.9   -77.4%
+10     down     3.4   6.4    20.0    232.1    532.0  +129.2%
+11     down     2.6   6.6    21.7     92.1     93.8    +1.8%
+12     up       3.6   5.6    22.6     91.1     78.2   -14.2%
+
+H compared WITHIN matched M-wave bins (stimulus controlled by construction).
+M/H are background-subtracted; valid% = trials whose M cleared 3x background.
