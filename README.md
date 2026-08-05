@@ -1,208 +1,117 @@
-# HROC Autoencoder Training Pipeline
+# HROC — Cortical Correlates of H-Reflex Operant Conditioning
 
-> **STATUS (2026-07-07): now trained on REAL Animal 9 data, end to end.**
-> All 283,315 real trials decoded, phase-labeled, and run through both training
-> phases. **See [REAL_RESULTS.md](REAL_RESULTS.md) for the numbers** and
-> [slides/HROC_Carp_Update_Animal9.pdf](slides/HROC_Carp_Update_Animal9.pdf) for
-> the plain-language walkthrough. Figures are in `outputs/`. The sections below
-> describe the pipeline itself (originally written for the synthetic smoke test).
+NCAN / Wolpaw-lab project. Decodes the 2006 Elizan III paired EMG+ECoG recordings
+at scale, quantifies operant H-reflex conditioning with proper stimulus control,
+and tests whether cortical activity changes as the spinal cord learns.
 
-The end-to-end model-training machine for the NCAN / Wolpaw-lab HROC project —
-the two-phase autoencoder Chad recommended. It runs on synthetic data with no
-setup, and (as of the status note above) on the real Animal-9 Zarr store.
-
-Built by Suchith. Tarun: read [SETUP.md](SETUP.md) then this doc; run the smoke
-test, then pick up the "Your tasks" section.
+**Status (Aug 2026):** six animals processed (~2.7M trials), all controls built.
 
 ---
 
-## What this is (and what it isn't)
+## Findings
 
-**Is:** the full training stack — data loading, both encoder paths, Phase 1
-unsupervised pretraining, Phase 2 supervised H-reflex regression, and the
-latent-space drift analysis that is the scientific point of the project.
+| finding | status |
+|---|---|
+| **Conditioning works in both directions** | **Solid.** Up-conditioned animals' corrected H rises, down-conditioned falls (group difference +72 pts). Animals 9, 11 (down) and 3 (up) clear the lab's 20% criterion, with M-wave and pre-stimulus background regressed out. |
+| **Cortex predicts the reflex trial-by-trial** | **Real.** Cross-validated *within* 5-day blocks (so slow drift cancels): R² up to 0.35 against a ~0 shuffle null, present in every animal. Not stimulus intensity, muscle tone, or drift. |
+| Average-state cortical drift = learning? | **Answered: no.** Three independent controls agree it is recording nonstationarity — sham null fails in 5/6 animals, randomised-order null ≈ 0, and no up-vs-down direction dependence (t = −1.01). |
 
-**Isn't:** trained on real signals yet. The real `.MYD` / Zarr data lives on the
-lab Google Drive and isn't in this repo. So the pipeline currently runs on
-**synthetic Animal-9-like data** (see `src/data/synthetic.py`) that mimics the
-decoded signal statistics — 150-sample 5 kHz windows, M-wave/H-reflex EMG bumps,
-an ECoG channel driven by latent factors that drift across the six conditioning
-phases. Every synthetic figure is watermarked `SYNTHETIC`. Nothing here is a
-scientific result — it's proof the machine works, so plugging in real data is a
-one-line change.
+Open: whether the coupling *changes* with conditioning (t = 0.69, n = 5 — a power
+problem), and an EMG→ECoG crosstalk test for the post-stimulus coupling.
 
----
-
-## The scientific bet (why any of this matters)
-
-Does the **brain** change as the **spinal cord** learns to control the H-reflex?
-Chad already published the simple ECoG↔H-reflex correlation — that juice is
-squeezed. The novel angle: train an autoencoder on the cortical signal, then ask
-whether its **latent space shifts across the six conditioning phases**
-(Baseline → Down-cond 1 → Up-cond 1 → Freely Running → Down-cond 2 → Up-cond 2).
-If it does, that's cortical correlates of HROC — never published.
-
-The `centroid_drift.png` and `umap_by_phase.png` figures are exactly that test.
+Key documents: [REAL_RESULTS.md](REAL_RESULTS.md) ·
+[ANIMAL_ROSTER.md](ANIMAL_ROSTER.md) · [NEXT_TWO_WEEKS.md](NEXT_TWO_WEEKS.md) ·
+slides in [`slides/`](slides/).
 
 ---
 
-## Run it
+## Signal facts (confirmed empirically — some correct the lab docs)
+
+- **Little-endian** int16. `decoder_2006.py`'s "big-endian" docstring is wrong for
+  these files (big-endian decodes to noise).
+- Block channel layout: **ch0 = SOLR soleus EMG, ch1 = ECoG**. `ad2uV = 2.441406`.
+- Fragments per trial: **frag0** = 1000 samples @ 1 kHz (1 s pre-stimulus),
+  **frag1** = 150 samples @ 5 kHz (the M/H response), **frag2** = late.
+- **M-wave 2–4 ms, H-reflex 6–9 ms** — from the experimenters' own type-15 log
+  entries, not the 8–10 ms the pipeline originally assumed.
+- Never use raw H amplitude: it scales with stimulus. Use H/M, or better, compare H
+  within matched M bins, always after background subtraction.
+
+---
+
+## Pipeline
 
 ```bash
 pip install -r requirements.txt
-python scripts/run_all.py --config config.yaml
+
+# 1. load one animal's MyISAM tables into a local MariaDB
+python scripts/load_animal.py --animal 9 --dir ~/Downloads/ani-emg-eeg-9
+
+# 2. convert -> Zarr, timestamps, QC, confound control, drift (one command)
+python scripts/run_animal.py --animal 9
+
+# 3. covariates Dr Carp asked for
+python scripts/add_prestim.py       --dsn "<dsn>" --zarr data/processed/animal9.zarr
+python scripts/add_prestim_bands.py --dsn "<dsn>" --zarr data/processed/animal9.zarr
+
+# 4. pooled encoder across animals, then the analyses
+python scripts/train_pooled.py      --zarrs data/processed/animal*.zarr
+python scripts/final_analysis.py    --ckpt outputs/encoder_pooled.pt --zarrs ...
+python scripts/coupling_analysis.py --ckpt outputs/encoder_pooled.pt --zarrs ...
+python scripts/updown_contrast.py   --ckpt outputs/encoder_pooled.pt --zarrs ...
+python scripts/prestim_coupling.py  --zarrs ...
 ```
 
-That runs the whole thing on synthetic data (~1.5 min CPU) and drops everything
-in `outputs/`:
-
-| file | what |
-|---|---|
-| `encoder_phase1.pt` | pretrained encoder checkpoint |
-| `hreflex_head.pt` | Phase-2 regression head |
-| `phase1_loss.png` | reconstruction loss curve |
-| `phase2_loss.png` | H-reflex regression MSE + R² curve |
-| `umap_by_phase.png` | latent UMAP colored by conditioning phase |
-| `centroid_drift.png` | latent centroid distance from Baseline per phase |
-| `phase_separation.txt` | silhouette score + drift numbers |
-| `run_summary.json` | full config + results |
-
-### Synthetic validation results (current run)
-- Phase 1 reconstruction MSE: 0.285 → **0.075**
-- Phase 2 H-reflex regression (frozen encoder): **val R² = 0.90**
-- Phases visibly separate in UMAP; down-cond vs up-cond land on opposite sides.
-
-The R²=0.90 from a *frozen* encoder is the thing to internalize: it means the
-unsupervised latent captured H-reflex-relevant structure without ever seeing a
-label. That's the behavior we want to reproduce on real data.
+`scripts/scan_animals.py` reads the tiny log files alone to classify an animal's
+conditioning direction (and, via the reward criterion, its strength) *before*
+downloading gigabytes of signal.
 
 ---
 
-## Architecture
+## Controls implemented
 
-Two interchangeable encoder paths (set `model.encoder` in `config.yaml`):
-
-**`conv_ae`** — 1-D convolutional autoencoder, trained from scratch on waveform
-reconstruction MSE. Fast, no external dependencies. Good default.
-
-**`brainbert`** — a BrainBERT-style masked-spectrogram transformer
-(Wang et al. 2023, arxiv 2302.14367). Takes the STFT of the window, masks random
-time-frequency frames, reconstructs them. This is the **external / pretrained
-path**: the architecture is ported faithfully so you can load the real BrainBERT
-checkpoint via `BrainBERTEncoder.load_pretrained(path)` once the weights are
-downloaded. BrainBERT is channel-count-agnostic, which is why it can transfer
-from human sEEG to our rat ECoG.
-
-**Two-phase training (both paths):**
-1. **Phase 1 (unsupervised):** reconstruct the ECoG signal over ALL trials,
-   including intermittent (`i`) trials with no H-reflex label. → frozen encoder.
-2. **Phase 2 (supervised):** freeze the encoder, attach an MLP head, regress
-   per-trial H-reflex amplitude. Report R² on held-out trials.
-
-**H-reflex label definition (Dr. Carp, 2026-07-01):** the label is the **mean
-rectified amplitude** in a matched window around the H-reflex — NOT peak-to-peak
-(a single peak gets corrupted by background activity). Baseline-correct, rectify,
-average over a window that encompasses the burst. The window must be identical
-across every trial and phase, and should be set by eyeballing the trial-averaged
-waveform. This lives in one place, `src/data/hreflex_label.py::compute_hreflex_label`,
-which both the synthetic generator and the real converter call. Window bounds are
-in `config.yaml` under `signal.hreflex_window_ms`.
+1. **M-wave** — stimulus efficacy, regressed out of every measure.
+2. **Pre-stimulus background** — motoneuron-pool excitability, 20 ms before the
+   stimulus, from frag0.
+3. **Baseline sham null** — split baseline-only data as a fake experiment.
+4. **Randomised trial-order null** — breaks real time structure, keeps the numbers.
+5. **Last-10-days baseline** — early baseline had settings changes.
+6. **Within-block cross-validation** — makes the coupling result drift-immune.
+7. **Up-vs-down direction contrast** — recording drift is direction-independent.
 
 ---
 
-## Real data — pooling ALL animals (the default path)
-
-We are NOT using synthetic data for results. The plan is to decode every animal
-(6, 9, 10, 11, 12, 13, 16, ...) and pool them into one autoencoder.
-
-Write one Zarr store per animal (same schema, window length is whatever that
-animal's format is — 150 for 2006, 250 for 2013):
+## Zarr schema (per animal)
 
 ```
-animal9.zarr/
-  ecog     (N, win)  float32   # cortical channel — the AE input
-  emg      (N, win)  float32   # EMG channel (validation + label source)
-  hreflex  (N,)      float32   # per-trial H-reflex label (compute_hreflex_label, NATIVE signal)
-  phase    (N,)      int64     # conditioning phase 0..5
+animalN.zarr/
+  ecog              (N, 150)  float32   cortical window — model input
+  emg               (N, 150)  float32   soleus EMG — label source
+  hreflex           (N,)      float32   mean rectified amplitude, matched window
+  phase             (N,)      int64     0 = baseline, 1 = conditioning
+  time              (N,)      int64     unix seconds
+  day               (N,)      int64     day index (drift-per-day)
+  prestim_emg       (N,)      float32   pre-stimulus background
+  prestim_bands     (N, 6)    float32   pre-stimulus cortical log band power
+  prestim_emg_bands (N, 6)    float32   same for EMG (crosstalk control)
+  attrs: direction ("up"/"down"), animal
 ```
 
-Then list every animal in `config.yaml`:
-```yaml
-data:
-  animals:
-    - {id: "9",  zarr_path: "data/processed/animal9.zarr"}
-    - {id: "16", zarr_path: "data/processed/animal16.zarr"}
-    # ...add each as its converter finishes
-  common_window_samples: 200   # all animals resampled to this before pooling
-```
-
-The loader resamples every animal to `common_window_samples` (so 150- and
-250-sample formats pool cleanly), tags each trial with its animal id, and pools.
-The H-reflex label is computed per-animal on the NATIVE signal in the converter,
-so resampling never touches it.
-
-**Watch the batch-effect check.** Pooling animals risks the latent separating by
-*animal identity* instead of *conditioning phase*. Every run now reports a phase
-silhouette AND an animal silhouette, plus `umap_by_animal.png`. If the animal
-silhouette is higher than the phase silhouette, the report prints a WARNING — the
-latent is dominated by which animal a trial came from, and you need per-animal
-normalization / batch correction (e.g. per-animal z-scoring, or an animal-
-adversarial term) before the drift result means anything. Start by running each
-animal ALONE to get a clean per-animal drift, THEN pool.
-
-Workflow order: (1) one animal alone → clean result, (2) add animals one at a
-time, watching the batch-effect check, (3) pool all with correction if needed.
+Raw `.MYD`/`.MYI`/`.frm`, Zarr stores, and the local MariaDB datadir are
+gitignored — never commit data.
 
 ---
 
 ## Repo map
 
 ```
-config.yaml                     all hyperparameters + data paths (edit here, not code)
-scripts/run_all.py              end-to-end orchestrator
-src/
-  utils/config.py               typed config + the 6 PHASES definition
-  utils/seed.py                 reproducibility
-  data/synthetic.py             synthetic Animal-9-like generator
-  data/preprocessing.py         z-scoring + STFT (for brainbert)
-  data/zarr_dataset.py          Dataset + Zarr loader / synthetic fallback  <-- real-data hook
-  models/autoencoder.py         conv_ae encoder+decoder
-  models/brainbert.py           BrainBERT-style encoder (+ load_pretrained)  <-- external weights hook
-  models/heads.py               Phase-2 MLP head + model factory
-  train/phase1_pretrain.py      unsupervised pretraining
-  train/phase2_finetune.py      frozen-encoder H-reflex regression
-  train/trainer.py              checkpoint/logging helpers
-  analysis/latent_umap.py       UMAP + centroid drift (the novel result)
+scripts/    load_animal, convert, run_animal, add_timestamps, add_prestim,
+            add_prestim_bands, scan_animals, reflex_measures, confound_control,
+            drift_over_time, final_analysis, coupling_analysis, prestim_coupling,
+            updown_contrast, train_pooled, validate_zarr, inspect_db
+src/        config, seed, data loaders, preprocessing, models (conv_ae + brainbert),
+            two-phase trainers, latent/UMAP + neuro figure analysis
+slides/     decks and talk scripts for the Carp meetings
+outputs/    figures, per-animal results, verdicts
+decoders/   original lab decoders (2006 / 2013) — see signal facts above
 ```
-
----
-
-## Your tasks, Tarun (in order)
-
-1. **SQLAlchemy → Zarr converter.** The one missing piece. Read trials via the
-   ORM stub (`utils/sqlalchemy_loader.py` in the main `hroc-ncan` repo), decode
-   blobs with `decoder_2006.py`, and write the Zarr schema above. Start with
-   Animal 9. For the `hreflex` array, call
-   `compute_hreflex_label(emg, cfg.signal)` — don't invent your own amplitude
-   measure; that function is Carp's agreed spec (mean rectified amplitude in a
-   matched window). Set `signal.hreflex_window_ms` from the trial average first.
-2. **Run on real Animal 9.** Flip `use_synthetic: false`, point at the store,
-   run. See if the frozen-encoder R² and the phase drift survive on real signal.
-3. **Try the `brainbert` path** and download the real pretrained checkpoint;
-   wire it through `load_pretrained` and compare latent quality vs `conv_ae`.
-4. **Phase labels for Animal 9.** The drift figure needs real phase labels; right
-   now those come from parsing type-15 log annotations (still open — Suchith).
-5. **Expand to ani-emg-eeg-10** once the Animal 9 run is clean.
-
-Open blockers Suchith still owns: Animal 9 baseline-subtraction bug (frag0 from
-preceding record) and phase-label recovery. Those feed task 1 and 4.
-
----
-
-## Design choices worth knowing
-- Per-trial z-scoring in the dataset removes DC/gain differences that would
-  otherwise dominate the latent space and hide phase structure.
-- The conv encoder infers its own flatten size, so changing `window_samples`
-  (150 for Animal 9, 250 for Animals 16/17) just works.
-- Both encoders share one interface (`encode`, `pretrain_step`) so the trainer
-  is identical regardless of path — swap encoders freely.

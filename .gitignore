@@ -27,3 +27,6 @@ slide-*.jpg
 q-*.jpg
 ~$*
 .Rhistory
+
+# jupyter
+.ipynb_checkpoints/
