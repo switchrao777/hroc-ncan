@@ -1,0 +1,5 @@
+animal,direction,m_peak_ms,h_peak_ms,valid_pct,H_change_pct,conditioned,drift,sham_null,rand_null,passes
+9,down,2.20,8.40,82.0,-98.3,True,19.30,43.49,0.33,False
+10,down,3.40,6.40,20.0,56.0,False,29.74,6.46,0.68,True
+11,down,2.60,6.60,21.7,-35.3,True,35.52,41.28,2.20,False
+12,up,3.60,5.60,22.6,-4.5,False,0.79,50.67,0.75,False

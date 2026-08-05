@@ -1,0 +1,13 @@
+=== FINAL ANALYSIS — stimulus + pre-stimulus background controlled ===
+baseline = last 10 days before onset;  success = 20% change
+
+animal dir     Mpk  Hpk valid%   H chg  cond?   drift    sham    rand  PASS
+A9     down    2.2  8.4   82.0  -98.3%    YES    19.3    43.5     0.3    no
+A10    down    3.4  6.4   20.0  +56.0%     no    29.7     6.5     0.7   YES
+A11    down    2.6  6.6   21.7  -35.3%    YES    35.5    41.3     2.2    no
+A12    up      3.6  5.6   22.6   -4.5%     no     0.8    50.7     0.8    no
+
+H chg  = corrected H at end of conditioning, % from baseline (>=20% = conditioned)
+drift  = mean cortical drift during conditioning, covariates removed
+sham   = baseline-only split (should be ~0);  rand = randomised trial order (should be ~0)
+PASS   = drift exceeds BOTH nulls (>2x sham and >3 SD above randomised)
