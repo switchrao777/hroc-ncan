@@ -2,10 +2,12 @@
 baseline = last 10 days before onset;  success = 20% change
 
 animal dir     Mpk  Hpk valid%   H chg  cond?   drift    sham    rand  PASS
-A9     down    2.2  8.4   82.0  -98.3%    YES    19.3    43.5     0.3    no
-A10    down    3.4  6.4   20.0  +56.0%     no    29.7     6.5     0.7   YES
-A11    down    2.6  6.6   21.7  -35.3%    YES    35.5    41.3     2.2    no
-A12    up      3.6  5.6   22.6   -4.5%     no     0.8    50.7     0.8    no
+A9     down    2.2  8.4   82.0  -98.3%    YES    30.4    70.2     0.4    no
+A10    down    3.4  6.4   20.0  +56.0%     no    28.7     6.8     0.7   YES
+A11    down    2.6  6.6   21.7  -35.3%    YES    53.4    60.3     2.5    no
+A3     up      2.2  6.8   66.4 +249.2%    YES    35.2    75.7     0.6    no
+A4     up      2.2  6.8   44.8  -24.2%     no     8.6    47.8     0.5    no
+A12    up      3.6  5.6   22.6   -4.5%     no     0.9    82.2     0.8    no
 
 H chg  = corrected H at end of conditioning, % from baseline (>=20% = conditioned)
 drift  = mean cortical drift during conditioning, covariates removed

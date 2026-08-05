@@ -1,0 +1,11 @@
+=== UP vs DOWN CONTRAST ===
+encoder: outputs/encoder_pooled.pt
+up: ['3', '4']   down: ['9', '10', '11']
+
+behaviour (corrected H %):  up=+76.83  down=+4.90  difference=+71.93  (t=1.34, n=2v3)
+   -> directions SEPARATE as expected (up above down: True)
+cortical drift:  up=+21.86  down=+34.63  difference=-12.77  (t=-1.01, n=2v3)
+
+Note (Carp): up-conditioning is not simply the mirror of down-conditioning;
+the spinal mechanisms differ, so the cortical drift could share a direction.
+We test for a group DIFFERENCE rather than requiring a sign flip.

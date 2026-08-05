@@ -63,14 +63,14 @@ def residualise(Y, X):
     return R[:, 0] if single else R
 
 
-def latents(cfg, ecog):
+def latents(cfg, ecog, ckpt="outputs/encoder_phase1.pt"):
     import torch
     from src.models.heads import build_autoencoder
     from src.utils.seed import get_device
     from src.data.preprocessing import zscore_per_trial
     dev = get_device()
     m = build_autoencoder(cfg)
-    m.load_state_dict(torch.load("outputs/encoder_phase1.pt", map_location="cpu")["model"])
+    m.load_state_dict(torch.load(ckpt, map_location="cpu")["model"])
     m = m.to(dev).eval()
     Z = []
     with torch.no_grad():
@@ -86,7 +86,7 @@ def block_drift(Z, block, ref_mask):
     return np.array(bl), np.array([np.linalg.norm(Z[block == b].mean(0) - ref) for b in bl])
 
 
-def analyse(cfg, zp, out, rng):
+def analyse(cfg, zp, out, rng, ckpt="outputs/encoder_phase1.pt"):
     import zarr
     r = zarr.open(zp, mode="r")
     emg = np.asarray(r["emg"]); ecog = r["ecog"]
@@ -128,7 +128,7 @@ def analyse(cfg, zp, out, rng):
         worked = final_pct >= SUCCESS * 100
 
     # --- cortical drift, residualised on the SAME covariates -----------------
-    Z = residualise(latents(cfg, ecog), X)
+    Z = residualise(latents(cfg, ecog, ckpt), X)
     bl_ids2, drift = block_drift(Z, block, base)
 
     # B1. sham null — split baseline only
@@ -192,13 +192,15 @@ def main():
     ap.add_argument("--zarrs", nargs="+", required=True)
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--out", default="outputs/final")
+    ap.add_argument("--ckpt", default="outputs/encoder_phase1.pt",
+                    help="encoder checkpoint (use outputs/encoder_pooled.pt for the pooled one)")
     args = ap.parse_args()
     from src.utils.config import Config
     cfg = Config.load(args.config)
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(cfg.train.seed)
 
-    res = [x for x in (analyse(cfg, z, out, rng) for z in args.zarrs) if x]
+    res = [x for x in (analyse(cfg, z, out, rng, args.ckpt) for z in args.zarrs) if x]
     L = ["=== FINAL ANALYSIS — stimulus + pre-stimulus background controlled ===",
          f"baseline = last {BASELINE_DAYS} days before onset;  success = {int(SUCCESS*100)}% change",
          "",
