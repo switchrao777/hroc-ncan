@@ -1,0 +1,24 @@
+=== PRE-STIMULUS CORTICAL STATE -> REFLEX SIZE ===
+predictor measured entirely BEFORE the stimulus (crosstalk-immune in time)
+target = H residualised on M-wave + pre-stimulus EMG background
+decoders fit and cross-validated WITHIN 5-day blocks (drift-immune)
+
+animal  dir     ECoG R2     null  low band   >100Hz  EMG ref
+A9      down     0.0158  -0.0003    0.0070   0.0075   0.0095
+A10     down     0.0059  -0.0033    0.0001   0.0049   0.0117
+A11     down     0.0055  -0.0027    0.0018   0.0024   0.0291
+A3      up       0.0055  -0.0009    0.0026   0.0019   0.0153
+A4      up       0.0238  -0.0007    0.0197   0.0170   0.0467
+
+OVERALL  ECoG R2 = 0.0102   shuffle null = -0.0020
+         low bands (delta-beta) = 0.0054   >100 Hz = 0.0065
+         EMG-band reference     = 0.0221
+         ECoG + EMG jointly     = 0.0266
+         change with conditioning: -0.0098 (t=-1.09, n=5)
+
+Interpretation guide:
+ * ECoG R2 well above the shuffle null => pre-stimulus cortical state carries
+   trial-by-trial information about how large the reflex will be.
+ * If the LOW bands carry it, EMG contamination is an implausible explanation
+   (muscle artefact lives at high frequency).
+ * If ECoG >> the EMG-band reference, the effect is not simply muscle tone.
