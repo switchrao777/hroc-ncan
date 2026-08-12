@@ -1,0 +1,17 @@
+=== DOES THE CORTICAL EFFECT SCALE WITH LEARNING? ===
+(Carp's internal control: animals that failed to condition should not show it)
+
+animal  dir     learned %  success  coupling  Δcoupling
+A9      down        +98.3      YES    0.0075    -0.0029
+A10     down        -56.0       no    0.0427    -0.0123
+A11     down        +35.3      YES    0.0292    +0.0228
+A3      up         +249.2      YES    0.0471    +0.0220
+A4      up          -24.2       no    0.0758    +0.0005
+
+learning vs coupling magnitude : r = -0.245  (t = -0.44, n = 5)
+learning vs change in coupling : r = +0.640  (t = +1.44, n = 5)
+
+A positive correlation would mean animals that learned more show more cortical
+coupling — evidence the coupling is tied to conditioning rather than to being
+recorded. With this n the test is underpowered; it is the analysis that the
+remaining animals (7, 8, 13, 14, 15) will actually power.
