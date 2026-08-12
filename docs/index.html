@@ -1,0 +1,318 @@
+<title>HROC — Cortical prediction of the H-reflex</title>
+<style>
+  :root{
+    --ink:#0A0E14; --paper:#EDF0F3; --signal:#C8791A; --cortex:#1E7F9E;
+    --oxide:#B14A38; --moss:#4A7C4E;
+    --bg:var(--paper); --fg:#141A21; --muted:#5A6672; --faint:#8A96A2;
+    --card:#FFFFFF; --line:#D6DCE3; --grid:#E3E8ED;
+    --serif: ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans: ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono: ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:var(--ink); --fg:#E4EAF0; --muted:#94A2AE; --faint:#67757F;
+      --card:#111823; --line:#22303D; --grid:#1A2530;
+      --signal:#E8A33D; --cortex:#57C4E5; --oxide:#D9705C; --moss:#78B27D; }
+  }
+  :root[data-theme="dark"]{ --bg:var(--ink); --fg:#E4EAF0; --muted:#94A2AE; --faint:#67757F;
+    --card:#111823; --line:#22303D; --grid:#1A2530;
+    --signal:#E8A33D; --cortex:#57C4E5; --oxide:#D9705C; --moss:#78B27D; }
+  :root[data-theme="light"]{ --bg:var(--paper); --fg:#141A21; --muted:#5A6672; --faint:#8A96A2;
+    --card:#FFFFFF; --line:#D6DCE3; --grid:#E3E8ED;
+    --signal:#C8791A; --cortex:#1E7F9E; --oxide:#B14A38; --moss:#4A7C4E; }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  a{color:inherit}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--faint)}
+
+  /* ---------- hero ---------- */
+  header{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+  h1{font-family:var(--serif);font-size:clamp(34px,5.2vw,58px);line-height:1.06;
+    letter-spacing:-.015em;margin:18px 0 0;max-width:16ch}
+  .thesis{font-size:clamp(16px,2vw,19px);color:var(--muted);max-width:60ch;margin:20px 0 0}
+  .byline{font-family:var(--mono);font-size:12.5px;color:var(--faint);margin-top:26px;line-height:1.9}
+
+  /* ---------- scope ---------- */
+  .scope{margin:38px 0 0;border:1px solid var(--line);border-radius:3px;
+    background:var(--card);position:relative;overflow:hidden}
+  .scope canvas{display:block;width:100%;height:240px}
+  .scope figcaption{font-family:var(--mono);font-size:11px;color:var(--faint);
+    padding:9px 14px;border-top:1px solid var(--line);display:flex;gap:22px;flex-wrap:wrap}
+  .key{display:inline-flex;align-items:center;gap:6px}
+  .key i{width:9px;height:2px;display:inline-block}
+
+  /* ---------- metrics ---------- */
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;background:var(--line);border-block:1px solid var(--line);margin:0}
+  .metric{background:var(--bg);padding:26px 20px}
+  .metric b{display:block;font-family:var(--serif);font-size:34px;line-height:1;
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .metric span{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);
+    margin-top:9px;letter-spacing:.06em}
+
+  section{padding:64px 0}
+  h2{font-family:var(--serif);font-size:clamp(24px,3.2vw,33px);letter-spacing:-.01em;
+    margin:10px 0 0;max-width:22ch}
+  .lede{color:var(--muted);max-width:64ch;margin:14px 0 0}
+
+  /* ---------- findings ---------- */
+  .finds{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:20px;margin-top:36px}
+  .find{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:24px}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    padding:4px 9px;border-radius:2px;display:inline-block;color:#fff}
+  .find h3{font-family:var(--serif);font-size:20px;margin:16px 0 8px;line-height:1.25}
+  .find p{margin:0;font-size:14.5px;color:var(--muted)}
+  .find .stat{font-family:var(--mono);font-size:13px;margin-top:14px;
+    padding-top:12px;border-top:1px dashed var(--line);color:var(--fg);
+    font-variant-numeric:tabular-nums}
+
+  /* ---------- variance ---------- */
+  .vbar{display:flex;height:46px;margin-top:30px;border-radius:3px;overflow:hidden;
+    border:1px solid var(--line)}
+  .vseg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-size:11.5px;color:#fff;letter-spacing:.03em;min-width:0}
+  .vlegend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:12px 26px;margin-top:20px;font-size:14px}
+  .vlegend div{display:flex;gap:10px;align-items:baseline}
+  .vlegend i{width:10px;height:10px;flex:none;border-radius:2px;transform:translateY(1px)}
+  .vlegend b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .vlegend span{color:var(--muted)}
+
+  /* ---------- resources ---------- */
+  .res{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:18px;margin-top:34px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:3px;
+    padding:26px;text-decoration:none;display:block;
+    transition:border-color .18s ease, transform .18s ease}
+  .card:hover,.card:focus-visible{border-color:var(--signal);transform:translateY(-2px)}
+  .card:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+  .card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--signal)}
+  .card h3{font-family:var(--serif);font-size:21px;margin:12px 0 8px}
+  .card p{margin:0;font-size:14px;color:var(--muted)}
+  .card .go{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:16px;display:block}
+
+  /* ---------- notes ---------- */
+  .caveat{background:var(--card);border:1px solid var(--line);border-left:none;
+    border-radius:3px;padding:22px 24px;margin-top:34px}
+  .caveat h3{font-family:var(--sans);font-size:14px;letter-spacing:.02em;margin:0 0 8px}
+  .caveat p{margin:0;font-size:14.5px;color:var(--muted);max-width:78ch}
+
+  footer{border-top:1px solid var(--line);padding:40px 0 60px;
+    font-family:var(--mono);font-size:12.5px;color:var(--faint);line-height:2}
+  footer b{color:var(--muted);font-weight:400}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">NCAN · Wadsworth Center · 2026</p>
+  <h1>Single-trial cortical prediction of the H&#8209;reflex</h1>
+  <p class="thesis">Operant conditioning changes the spinal cord. We asked whether the
+    cortex carries a signal about the reflex on individual trials &mdash; and built the
+    controls to find out whether the answer was real.</p>
+  <p class="byline">
+    Suchith Rao &amp; Tarun Senthil<br>
+    with Dr.&nbsp;Jonathan&nbsp;S.&nbsp;Carp and Theresa <span style="color:var(--oxide)">[surname]</span>, NCAN
+  </p>
+
+  <figure class="scope">
+    <canvas id="tr" width="1600" height="480" aria-label="Averaged soleus EMG trace showing the stimulus artifact, M-wave and H-reflex"></canvas>
+    <figcaption>
+      <span class="key"><i style="background:var(--signal)"></i>soleus EMG</span>
+      <span class="key"><i style="background:var(--cortex)"></i>cortical ECoG</span>
+      <span>M&#8209;wave 2&ndash;4&nbsp;ms</span>
+      <span>H&#8209;reflex 6&ndash;9&nbsp;ms</span>
+      <span>30&nbsp;ms window · 5&nbsp;kHz · one trial of 2,704,000</span>
+    </figcaption>
+  </figure>
+</header>
+</div>
+
+<div class="metrics">
+  <div class="metric"><b>2.7M</b><span>TRIALS DECODED</span></div>
+  <div class="metric"><b>6</b><span>ANIMALS</span></div>
+  <div class="metric"><b>3 / 3</b><span>DOWN / UP</span></div>
+  <div class="metric"><b>210</b><span>DAYS, LONGEST</span></div>
+  <div class="metric"><b>4</b><span>INDEPENDENT CONTROLS</span></div>
+</div>
+
+<div class="wrap">
+<section>
+  <p class="eyebrow">What we found</p>
+  <h2>Three results, including one that says no</h2>
+  <p class="lede">Every number below is corrected for stimulus intensity and
+    motoneuron-pool excitability &mdash; the two things that move the reflex without any
+    learning involved.</p>
+
+  <div class="finds">
+    <article class="find">
+      <span class="tag" style="background:var(--moss)">Reproduced</span>
+      <h3>Conditioning works, both directions</h3>
+      <p>Corrected H&#8209;reflex amplitude rises in up-conditioned animals and falls in
+        down-conditioned ones, separating the groups by 72 percentage points.</p>
+      <p class="stat">3 of 5 clear the lab's 20% criterion</p>
+    </article>
+
+    <article class="find">
+      <span class="tag" style="background:var(--cortex)">Positive</span>
+      <h3>Cortex predicts the reflex, trial by trial</h3>
+      <p>Decoders trained and tested <em>within</em> five-day blocks &mdash; so slow
+        recording drift cancels &mdash; beat a shuffle null in every animal.</p>
+      <p class="stat">R&sup2; = 0.037 &nbsp;vs&nbsp; null &minus;0.009</p>
+    </article>
+
+    <article class="find">
+      <span class="tag" style="background:var(--oxide)">Negative</span>
+      <h3>Average-state drift is not learning</h3>
+      <p>The intuitive analysis looks convincing and fails three separate controls. It
+        tracks slow change in the recording, not the animal.</p>
+      <p class="stat">sham drifts in 5 of 6 animals</p>
+    </article>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <p class="eyebrow">In proportion</p>
+  <h2>What actually explains reflex size</h2>
+  <p class="lede">Cortex and stimulus share variance, because the stimulus drives both the
+    cortical evoked response and the reflex. Only the non-overlapping part counts.</p>
+
+  <div class="vbar" role="img" aria-label="Variance in H-reflex amplitude: stimulus 47 percent, background 1 percent, cortex unique 2 percent, unexplained 51 percent (rounding)">
+    <div class="vseg" style="flex:47;background:var(--signal)">47% stimulus</div>
+    <div class="vseg" style="flex:1;background:var(--moss)"></div>
+    <div class="vseg" style="flex:2;background:var(--cortex)"></div>
+    <div class="vseg" style="flex:51;background:var(--faint)">51% unexplained</div>
+  </div>
+  <div class="vlegend">
+    <div><i style="background:var(--signal)"></i><span><b>47%</b> &nbsp;stimulus, from the M&#8209;wave</span></div>
+    <div><i style="background:var(--moss)"></i><span><b>1%</b> &nbsp;pre-stimulus background</span></div>
+    <div><i style="background:var(--cortex)"></i><span><b>2%</b> &nbsp;cortex, unique contribution</span></div>
+    <div><i style="background:var(--faint)"></i><span><b>51%</b> &nbsp;unexplained</span></div>
+  </div>
+
+  <div class="caveat">
+    <h3>Why the headline number went down, not up</h3>
+    <p>An earlier estimate put the cortical share far higher. That version removed the
+      stimulus across all trials at once and then measured cortex block by block, which
+      leaves between-block stimulus variance behind &mdash; and cortex tracks the stimulus.
+      Removing it inside each block gives 0.037. It is the smaller claim, and the one
+      that survives.</p>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <p class="eyebrow">Everything, in one place</p>
+  <h2>Code, report and slides</h2>
+
+  <div class="res">
+    <a class="card" href="https://github.com/switchrao777/hroc-ncan">
+      <span class="k">Repository</span>
+      <h3>Full pipeline &amp; analysis</h3>
+      <p>Decoding, the pooled autoencoder, every control, and per-animal results.
+        One command per animal, reproducible end to end.</p>
+      <span class="go">github.com/switchrao777/hroc-ncan &rarr;</span>
+    </a>
+
+    <a class="card" href="https://github.com/switchrao777/hroc-ncan/blob/main/docs/HROC_Report.pdf">
+      <span class="k">Report</span>
+      <h3>Six-page write-up</h3>
+      <p>Background, methods, results and limitations with the figures and the real
+        numbers. Formatted as a handout.</p>
+      <span class="go">docs/HROC_Report.pdf &rarr;</span>
+    </a>
+
+    <a class="card" href="https://github.com/switchrao777/hroc-ncan/tree/main/slides">
+      <span class="k">Slides</span>
+      <h3>Presentation deck</h3>
+      <p>The talk for the NCAN group, plus the weekly updates and speaker notes for
+        each.</p>
+      <span class="go">slides/ &rarr;</span>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <b>Data</b> &nbsp;Elizan III recordings, Laboratory of Neural Injury and Repair,
+  Wadsworth Center. Raw recordings remain with NCAN.<br>
+  <b>References</b> &nbsp;Boulay CB, Chen XY, Wolpaw JR, <em>J Neurophysiol</em> 113:2232&ndash;2241, 2015 &nbsp;·&nbsp;
+  Thompson AK, Wolpaw JR, <em>Front Integr Neurosci</em> 8:25, 2014<br>
+  <b>Status</b> &nbsp;Progress report, August 2026. Five animals analysed; the
+  scaling result awaits a larger sample.
+</footer>
+</div>
+
+<script>
+(function(){
+  var c = document.getElementById('tr'), x = c.getContext('2d');
+  var css = getComputedStyle(document.documentElement);
+  function draw(t){
+    var W=c.width, H=c.height, pad=46;
+    var s=function(n){return css.getPropertyValue(n).trim();};
+    x.clearRect(0,0,W,H);
+    // grid
+    x.strokeStyle=s('--grid'); x.lineWidth=1;
+    for(var g=0;g<=6;g++){var gx=pad+(W-2*pad)*g/6;
+      x.beginPath();x.moveTo(gx,10);x.lineTo(gx,H-26);x.stroke();}
+    // band shading: M-wave and H-reflex
+    function bx(ms){return pad+(W-2*pad)*ms/30;}
+    x.fillStyle=s('--signal'); x.globalAlpha=.10;
+    x.fillRect(bx(2),10,bx(4)-bx(2),H-36);
+    x.globalAlpha=.08; x.fillStyle=s('--cortex');
+    x.fillRect(bx(6),10,bx(9)-bx(6),H-36);
+    x.globalAlpha=1;
+    // trace generators
+    function emg(ms){
+      var v=0;
+      v += 1.55*Math.exp(-Math.pow((ms-0.45)/0.30,2));      // stimulus artifact
+      v -= 0.75*Math.exp(-Math.pow((ms-0.95)/0.30,2));
+      v += 0.62*Math.exp(-Math.pow((ms-3.0)/0.62,2));       // M-wave
+      v -= 0.30*Math.exp(-Math.pow((ms-4.3)/0.55,2));
+      v += 0.40*Math.exp(-Math.pow((ms-7.2)/0.85,2));       // H-reflex
+      v -= 0.18*Math.exp(-Math.pow((ms-9.0)/0.80,2));
+      v += 0.035*Math.sin(ms*7.1)*Math.exp(-ms/16);
+      return v;
+    }
+    function ecog(ms){
+      return 0.30*Math.sin(ms*1.05+0.6)*Math.exp(-ms/26)
+           + 0.13*Math.sin(ms*2.9+1.4) + 0.05*Math.sin(ms*6.3);
+    }
+    function plot(fn, col, mid, amp, lw, upto){
+      x.strokeStyle=col; x.lineWidth=lw; x.beginPath();
+      for(var i=0;i<=600;i++){
+        var ms=30*i/600; if(ms>upto) break;
+        var px=pad+(W-2*pad)*i/600, py=mid-fn(ms)*amp;
+        i? x.lineTo(px,py) : x.moveTo(px,py);
+      }
+      x.stroke();
+    }
+    var upto = 30*Math.min(1,t);
+    plot(ecog, s('--cortex'), H*0.74, 58, 2.2, upto);
+    plot(emg,  s('--signal'), H*0.58, 118, 2.6, upto);
+    // axis labels
+    x.fillStyle=s('--faint'); x.font='500 17px ui-monospace,Menlo,monospace';
+    for(var m=0;m<=30;m+=5){
+      var lx=bx(m); x.fillText(m+(m===30?' ms':''), lx-8, H-8);
+    }
+  }
+  var start=null;
+  function frame(ts){
+    if(!start) start=ts;
+    var t=Math.min(1,(ts-start)/1400);
+    draw(t);
+    if(t<1) requestAnimationFrame(frame);
+  }
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ draw(1); }
+  else { requestAnimationFrame(frame); }
+  var mo=new MutationObserver(function(){draw(1);});
+  mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){draw(1);});
+  window.addEventListener('resize',function(){draw(1);});
+})();
+</script>
