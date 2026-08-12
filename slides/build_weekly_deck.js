@@ -129,7 +129,35 @@ const fit=(r,mw,mh)=>{let w=mw,h=w/r; if(h>mh){h=mh;w=h*r;} return [w,h];};
    {x:0.72,y:7.1,w:11.9,h:0.4,fontFace:SANS,fontSize:13,italic:true,bold:true,color:VIOLET,margin:0});
  s.addNotes("One new finding, and it's a constraint. I went back through every animal's log using the reward criterion as a success readout. For up-conditioning, raising the bar means the rat is beating it. Animals 3 and 4 had theirs raised, so they learned. Animals 1 and 6 had theirs lowered, so they struggled. And animal 12's electrode was dead. So the up group is capped at two, permanently — there isn't another good up-conditioned animal in this dataset. The down group can still grow, and 7, 8, 13, 14 and 15 are ready to download.");})();
 
-// 8 PLAN
+
+// 8 THE PACKAGE (website + 3 components)
+(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"New this week · deliverables",VIOLET);
+ title(s,"Everything now lives in one place");
+ s.addText("We put the project behind a single page so the code, the write-up and the slides stay in sync and are easy to hand to anyone.",
+   {x:0.7,y:1.78,w:11.9,h:0.55,fontFace:SANS,fontSize:14.5,color:INK,margin:0});
+ const parts=[["Repository","The pipeline",VIOLET,
+    "Decoding, the pooled autoencoder, every control, per-animal results. One command per animal, reproducible end to end.",
+    "github.com/switchrao777/hroc-ncan"],
+   ["Report","Six-page write-up",TEAL,
+    "Background, methods, results, limitations, references — with the four figures and the real numbers. Formatted as a handout.",
+    "docs/HROC_Report.pdf"],
+   ["Slides","The decks",AMBER,
+    "This update, the talk for your group, and speaker notes for each.",
+    "slides/"]];
+ let x=0.7;
+ parts.forEach(([k,t,c,d,u])=>{card(s,x,2.5,3.87,3.5);
+  s.addText(k.toUpperCase(),{x:x+0.3,y:2.75,w:3.3,h:0.3,fontFace:SANS,fontSize:11,bold:true,color:c,charSpacing:2,margin:0});
+  s.addText(t,{x:x+0.3,y:3.1,w:3.3,h:0.5,fontFace:SERIF,fontSize:19,bold:true,color:INK,margin:0});
+  s.addText(d,{x:x+0.3,y:3.7,w:3.35,h:1.6,fontFace:SANS,fontSize:12.5,color:MUTED,lineSpacingMultiple:1.06,margin:0});
+  s.addText(u,{x:x+0.3,y:5.45,w:3.35,h:0.4,fontFace:SANS,fontSize:10.5,italic:true,color:c,margin:0});
+  x+=4.08;});
+ card(s,0.7,6.25,11.9,0.85,"F5F3FF");
+ s.addText([{text:"Two blanks I left for you:  ",options:{bold:true,color:VIOLET}},
+   {text:"Theresa's surname, and what Tarun and I should be listed as. I didn't want to guess on the write-up.",options:{color:INK}}],
+   {x:1.05,y:6.4,w:11.2,h:0.55,valign:"middle",fontFace:SANS,fontSize:13,margin:0});
+ s.addNotes("One more thing from this week. We put everything behind a single page so it stays in sync and is easy to hand to anyone — the repository with the whole pipeline, a six-page write-up formatted as a handout with the real numbers and figures, and the slide decks. Two blanks I deliberately left: Theresa's surname, and what Tarun and I should be listed as on the write-up. I didn't want to guess at either.");})();
+
+// 9 PLAN
 (()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"Next","0D9488"); title(s,"Between now and the 21st");
  const road=[["Download and process the remaining animals","7, 8, 13, 14, 15 (down) plus 1 and 6 (failed up — negative controls). Takes n from 5 to about 12.",VIOLET],
   ["Re-run everything at the larger n","The scaling correlation is the analysis this powers. Fully automated — two commands per animal.",VIOLET],
