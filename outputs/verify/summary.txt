@@ -1,0 +1,26 @@
+=== VERIFICATION (Carp, 2026-08-12) ===
+
+1. TIGHTENED COUPLING — M and background removed WITHIN each block
+animal  dir     global (old)  within-block     null
+A9      down          0.0172        0.0090  -0.0027
+A10     down          0.1799        0.0452  -0.0189
+A11     down          0.0890        0.0160  -0.0145
+A3      up            0.0524        0.0393  -0.0048
+A4      up            0.1109        0.0749  -0.0056
+MEAN                  0.0899        0.0369
+  -> the conservative estimate is 0.037; the earlier global-residual figure was 0.090.
+
+2. CROSSTALK — correlation between cortical and muscle band power across trials
+animal      delta    theta    alpha     beta    gamma     high
+A9         -0.137   -0.107   -0.117   -0.094    0.131    0.185
+A10        -0.107   -0.132   -0.121   -0.046    0.093    0.084
+A11        -0.096   -0.087   -0.117   -0.003    0.104    0.122
+A3         -0.036   -0.047   -0.051    0.019    0.046    0.025
+A4          0.007    0.097    0.109    0.281    0.092   -0.129
+MEAN       -0.074   -0.055   -0.059    0.032    0.093    0.057
+
+  high-band (>100 Hz) cortex-muscle correlation = +0.057
+  Interpretation: muscle artefact lives at high frequency. A correlation near
+  zero there means the ECoG is not simply reproducing the EMG. A large positive
+  value would indicate contamination.
+  lead-lag asymmetry (positive = cortex leads muscle): +0.0049
