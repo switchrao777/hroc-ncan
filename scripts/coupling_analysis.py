@@ -182,6 +182,8 @@ def main():
         if m is not None:
             ax.plot(grid, m, color=col, lw=3.4, label=f"{nm} mean (n={n})")
     ax.axvline(0, color="#94a3b8", ls="--"); ax.axhline(0, color="#cbd5e1", ls=":")
+    # Carp (2026-08-12): only one animal runs past day 50 and it distracts; crop.
+    ax.set_xlim(-35, 55)
     ax.set_xlabel("day relative to conditioning onset")
     ax.set_ylabel("cortex→reflex cross-validated R²")
     ax.set_title("Does cortical coupling to the reflex change with conditioning?")
