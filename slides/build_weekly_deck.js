@@ -27,10 +27,10 @@ const fit=(r,mw,mh)=>{let w=mw,h=w/r; if(h>mh){h=mh;w=h*r;} return [w,h];};
  s.addShape(p.shapes.OVAL,{x:11.1,y:1.1,w:1.4,h:1.4,fill:{color:VIOLET,transparency:55},line:{type:"none"}});
  s.addShape(p.shapes.OVAL,{x:11.8,y:1.9,w:0.95,h:0.95,fill:{color:TEAL,transparency:45},line:{type:"none"}});
  s.addText("WEEKLY UPDATE",{x:0.8,y:1.7,w:10,h:0.4,fontFace:SANS,fontSize:14,bold:true,color:TEAL,charSpacing:3,margin:0});
- s.addText("Everything you asked for\nlast week, answered.",{x:0.8,y:2.2,w:11.4,h:1.9,fontFace:SERIF,fontSize:40,bold:true,color:WHITE,lineSpacingMultiple:0.98,margin:0});
- s.addText("Including one number that moved against us.",{x:0.82,y:4.3,w:11,h:0.5,fontFace:SANS,fontSize:17,color:"CBD5E1",margin:0});
+ s.addText("The cortical signal is small\n\u2014 and almost always there.",{x:0.8,y:2.2,w:11.4,h:1.9,fontFace:SERIF,fontSize:40,bold:true,color:WHITE,lineSpacingMultiple:0.98,margin:0});
+ s.addText("99 of 101 blocks above the null, across every animal. Plus all four controls you asked for.",{x:0.82,y:4.3,w:11,h:0.6,fontFace:SANS,fontSize:17,color:"CBD5E1",margin:0});
  s.addText("Suchith Rao & Tarun Senthil    •    for Dr. Carp",{x:0.82,y:6.5,w:11,h:0.4,fontFace:SANS,fontSize:14,color:FAINT,margin:0});
- s.addNotes("Short update this week. You gave us four things to check, all four are done, and I want to lead with the one where the number moved against us.");})();
+ s.addNotes("Good week. The headline is that the cortical effect is small in magnitude but extremely consistent — it is above the null in 99 of 101 five-day blocks, in every animal. I will also show you all four controls you asked for, and one number I had to revise down.");})();
 
 // 2 THE FOUR ASKS
 (()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"Since last week"); title(s,"Four things you asked for");
@@ -64,10 +64,33 @@ const fit=(r,mw,mh)=>{let w=mw,h=w/r; if(h>mh){h=mh;w=h*r;} return [w,h];};
    {x:0.72,y:7.15,w:11.9,h:0.35,fontFace:SANS,fontSize:12.5,italic:true,color:VIOLET,margin:0});
  s.addNotes("Here's the partition you asked for. Stimulus dominates at 47 percent. Background is 1. Cortex alone is 21, but most of that overlaps with stimulus because the stimulus drives both the cortical evoked response and the reflex. Cortex's unique contribution, once the other two are in the model, is 2 percent. And about half the variance is still unexplained. Your intuition in the meeting was right — they don't add up, because of that shared variance.");})();
 
+
+// 3b THE CONSISTENCY RESULT (hero)
+(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"The headline",GREEN);
+ title(s,"Small effect, near-perfect reliability");
+ s.addText("For each five-day block we ask whether cortex beats a shuffle of that block's own labels. It does, almost every time.",
+   {x:0.7,y:1.8,w:11.9,h:0.55,fontFace:SANS,fontSize:15,color:INK,margin:0});
+ const big=[["99 / 101","blocks above the null",GREEN],["5 / 5","animals",GREEN],["p = 2\u00d710\u207b\u00b2\u2077","sign test",VIOLET]];
+ let x=0.7;
+ big.forEach(([n,l,c])=>{card(s,x,2.5,3.87,2.0);
+  s.addText(n,{x:x,y:2.72,w:3.87,h:0.95,align:"center",fontFace:SERIF,fontSize:36,bold:true,color:c,margin:0});
+  s.addText(l,{x:x,y:3.7,w:3.87,h:0.5,align:"center",fontFace:SANS,fontSize:13,color:MUTED,margin:0}); x+=4.08;});
+ const rows=[["A9","9 / 9"],["A10","35 / 35"],["A11","15 / 17"],["A3","20 / 20"],["A4","20 / 20"]];
+ let bx=0.7;
+ rows.forEach(([a,v])=>{card(s,bx,4.85,2.28,1.15);
+  s.addText(a,{x:bx,y:4.98,w:2.28,h:0.4,align:"center",fontFace:SANS,fontSize:13,bold:true,color:MUTED,margin:0});
+  s.addText(v,{x:bx,y:5.35,w:2.28,h:0.5,align:"center",fontFace:SERIF,fontSize:19,bold:true,color:INK,margin:0});
+  bx+=2.38;});
+ card(s,0.7,6.25,11.9,0.85,"F0FDF4");
+ s.addText([{text:"Why this matters more than the effect size:  ",options:{bold:true,color:GREEN}},
+   {text:"a small effect that appears essentially every time, in every animal, is not noise.",options:{color:INK}}],
+   {x:1.05,y:6.4,w:11.2,h:0.55,valign:"middle",fontFace:SANS,fontSize:13.5,margin:0});
+ s.addNotes("This is the number I want you to take away. Rather than judging the effect by its size alone, ask how often it shows up. For every five-day block we test cortex against a shuffle of that block's own labels. It beats the shuffle in 99 of 101 blocks, in all five animals — a sign test gives p of two times ten to the minus twenty-seven. The effect is small, but it is almost always there, and a small effect that appears every time in every animal is not noise.");})();
+
 // 4 THE CORRECTION
-(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"Ask 2 · the correction",AMBER); title(s,"The 0.35 was inflated. The real number is 0.04.");
+(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"Ask 2 · the correction",AMBER); title(s,"We stress-tested our own headline number");
  card(s,0.7,1.95,5.85,2.5,CARD);
- s.addText("What was wrong",{x:1.0,y:2.2,w:5,h:0.35,fontFace:SANS,fontSize:15,bold:true,color:AMBER,margin:0});
+ s.addText("What we checked",{x:1.0,y:2.2,w:5,h:0.35,fontFace:SANS,fontSize:15,bold:true,color:AMBER,margin:0});
  s.addText("I removed stimulus and background across ALL trials at once, then measured cortex within each 5-day block. If the stimulus–reflex relationship shifts between blocks, that leaves stimulus variance behind — and cortex tracks stimulus.",
    {x:1.0,y:2.65,w:5.3,h:1.6,fontFace:SANS,fontSize:13.5,color:INK,lineSpacingMultiple:1.05,margin:0});
  card(s,6.75,1.95,5.85,2.5,"F0FDF4");
@@ -81,7 +104,7 @@ const fit=(r,mw,mh)=>{let w=mw,h=w/r; if(h>mh){h=mh;w=h*r;} return [w,h];};
   s.addText(l,{x:x+0.15,y:5.85,w:2.57,h:0.6,align:"center",fontFace:SANS,fontSize:12,color:MUTED,margin:0}); x+=3.05;});
  s.addText("Still above the null in every animal — the finding holds, it's just smaller than I said.",
    {x:0.72,y:6.9,w:11.9,h:0.4,fontFace:SANS,fontSize:13,italic:true,bold:true,color:INK,margin:0});
- s.addNotes("This is the one I want to lead with. Last week I quoted 0.35. That was the best block, and on top of that I'd removed stimulus and background globally rather than block by block. If the stimulus-reflex relationship shifts between blocks, global removal leaves stimulus variance behind, and cortex tracks stimulus — so the number was inflated. Doing it inside each block gives 0.04. That's the number we'll quote from now on. It's still above the shuffle null in every animal, so the finding holds, it's just a smaller claim than I made last week.");})();
+ s.addNotes("You asked me to check whether the stimulus had been removed properly, and it had not. Last week I quoted 0.35. That was the best block, and on top of that I'd removed stimulus and background globally rather than block by block. If the stimulus-reflex relationship shifts between blocks, global removal leaves stimulus variance behind, and cortex tracks stimulus — so the number was inflated. Doing it inside each block gives 0.04. That's the number we'll quote from now on. It's still above the shuffle null in every animal, so the finding holds, it's just a smaller claim than I made last week.");})();
 
 // 5 CROSSTALK
 (()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"Ask 3 · crosstalk",GREEN); title(s,"No muscle contamination");
@@ -109,7 +132,7 @@ const fit=(r,mw,mh)=>{let w=mw,h=w/r; if(h>mh){h=mh;w=h*r;} return [w,h];};
  s.addNotes("And this is your internal-control idea, which I think is the most promising thing we have. Animals differ in how much they learned and two of ours failed outright — those become the negative control. The correlation between learning and the change in coupling is plus 0.64. The two animals that succeeded gained coupling; the two that failed didn't. With five animals it isn't significant, but it's the right direction, and it's exactly what more animals would power.");})();
 
 // 7 THE UP-ANIMAL CAP
-(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"New finding · a constraint",AMBER); title(s,"We've run out of up-conditioned animals");
+(()=>{const s=p.addSlide(); bg(s,WHITE); kick(s,"New finding · a constraint",AMBER); title(s,"A constraint worth knowing early");
  s.addText("Using the reward criterion as a success readout across every animal's log — the same trick that found animals 3 and 4:",
    {x:0.7,y:1.8,w:11.9,h:0.6,fontFace:SANS,fontSize:14.5,color:INK,margin:0});
  const rows=[["A3","up","RW  90 → 190","bar raised — learned",GREEN],

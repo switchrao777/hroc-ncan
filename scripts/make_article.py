@@ -57,9 +57,10 @@ motoneuron-pool excitability. Second, the naive measure — drift of the average
 cortical state across conditioning — does not survive its own controls and reflects
 slow recording nonstationarity rather than learning. Third, using a design in which
 decoders are trained and tested <i>within</i> five-day blocks, cortical activity
-predicts single-trial H-reflex amplitude above a within-block shuffle null in every
-animal, contributing roughly 2% of reflex variance uniquely once stimulus and
-background are accounted for. Across animals, the change in this coupling correlates
+predicts single-trial H-reflex amplitude above a within-block shuffle null in 99 of
+101 blocks across all five animals (sign test p = 2×10⁻²⁷), contributing roughly 2% of
+reflex variance uniquely once stimulus and background are accounted for. The effect is
+small in magnitude but near-perfectly reliable. Across animals, the change in this coupling correlates
 with how much each animal learned (r = +0.64, n = 5), though the sample is not yet
 sufficient for significance.
 </div>
@@ -137,7 +138,9 @@ therefore not separable; this is a limitation of the design, not of the data.</p
 <h3>3.3 Cortical activity predicts single-trial reflex amplitude</h3>
 <p>Reframing the question removes the confound. Decoders trained and tested within
 five-day blocks predict single-trial H-reflex amplitude above a within-block label
-shuffle in every animal (mean cross-validated R² = 0.037, null = −0.009). Removing
+shuffle in 99 of 101 blocks and in all five animals (mean cross-validated R² = 0.037,
+null = −0.009; sign test against chance p = 2×10⁻²⁷). Judged by magnitude the effect is
+small; judged by reliability it is close to invariant. Removing
 stimulus and background <i>within</i> each block rather than globally is essential: the
 global procedure leaves between-block stimulus variance, which cortex tracks, and
 inflates the estimate to 0.090. We report the conservative value.</p>
