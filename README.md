@@ -1,117 +1,76 @@
-# HROC — Cortical Correlates of H-Reflex Operant Conditioning
+# Cortical correlates of H-reflex operant conditioning
 
-NCAN / Wolpaw-lab project. Decodes the 2006 Elizan III paired EMG+ECoG recordings
-at scale, quantifies operant H-reflex conditioning with proper stimulus control,
-and tests whether cortical activity changes as the spinal cord learns.
+Machine-learning analysis of paired soleus EMG and sensorimotor ECoG recordings
+from the operant H-reflex conditioning paradigm, in collaboration with the
+National Center for Adaptive Neurotechnologies (NCAN), Wadsworth Center.
 
-**Status (Aug 2026):** six animals processed (~2.7M trials), all controls built.
+**Project page:** [docs/index.html](docs/index.html) ·
+**Report:** [docs/HROC_Report.pdf](docs/HROC_Report.pdf) ·
+**Slides:** [slides/](slides/)
 
 ---
+
+## The question
+
+Rats are rewarded for making the soleus H-reflex larger or smaller. Over weeks
+the spinal cord itself changes; a 20% shift is the criterion for success. Boulay,
+Chen and Wolpaw (2015) showed that cortical activity influences reflex size. We
+ask whether that relationship is altered by learning, and whether it is visible
+on a single trial.
 
 ## Findings
 
-| finding | status |
+| | |
 |---|---|
-| **Conditioning works in both directions** | **Solid.** Up-conditioned animals' corrected H rises, down-conditioned falls (group difference +72 pts). Animals 9, 11 (down) and 3 (up) clear the lab's 20% criterion, with M-wave and pre-stimulus background regressed out. |
-| **Cortex predicts the reflex trial-by-trial** | **Real.** Cross-validated *within* 5-day blocks (so slow drift cancels): R² up to 0.35 against a ~0 shuffle null, present in every animal. Not stimulus intensity, muscle tone, or drift. |
-| Average-state cortical drift = learning? | **Answered: no.** Three independent controls agree it is recording nonstationarity — sham null fails in 5/6 animals, randomised-order null ≈ 0, and no up-vs-down direction dependence (t = −1.01). |
+| **Conditioning reproduces in both directions** | Corrected H-reflex amplitude rises in up-conditioned animals and falls in down-conditioned animals. Three of five clear the 20% criterion. |
+| **Cortex predicts the reflex trial by trial** | Decoders cross-validated *within* five-day blocks beat a shuffle of their own block's labels in 99 of 101 blocks. R² = 0.037; animal-level t(4) = 3.81, p = 0.019. |
+| **Average-state drift is not learning** | The intuitive analysis fails three separate controls and reflects slow recording nonstationarity. |
 
-Open: whether the coupling *changes* with conditioning (t = 0.69, n = 5 — a power
-problem), and an EMG→ECoG crosstalk test for the post-stimulus coupling.
+Cortex contributes about 2% of H-reflex variance uniquely, once stimulus
+intensity (47%) and pre-stimulus excitability (1%) are accounted for. Animals
+that learned more show a larger increase in coupling (r = +0.71, n = 5), which
+the remaining recordings would be needed to confirm.
 
-Key documents: [REAL_RESULTS.md](REAL_RESULTS.md) ·
-[ANIMAL_ROSTER.md](ANIMAL_ROSTER.md) · [NEXT_TWO_WEEKS.md](NEXT_TWO_WEEKS.md) ·
-slides in [`slides/`](slides/).
+## Controls
 
----
-
-## Signal facts (confirmed empirically — some correct the lab docs)
-
-- **Little-endian** int16. `decoder_2006.py`'s "big-endian" docstring is wrong for
-  these files (big-endian decodes to noise).
-- Block channel layout: **ch0 = SOLR soleus EMG, ch1 = ECoG**. `ad2uV = 2.441406`.
-- Fragments per trial: **frag0** = 1000 samples @ 1 kHz (1 s pre-stimulus),
-  **frag1** = 150 samples @ 5 kHz (the M/H response), **frag2** = late.
-- **M-wave 2–4 ms, H-reflex 6–9 ms** — from the experimenters' own type-15 log
-  entries, not the 8–10 ms the pipeline originally assumed.
-- Never use raw H amplitude: it scales with stimulus. Use H/M, or better, compare H
-  within matched M bins, always after background subtraction.
+Every cortical claim had to survive: a baseline sham split, a randomised trial-order
+null, regression on the M-wave, regression on pre-stimulus background EMG,
+within-block cross-validation, a cortex-versus-muscle band-power crosstalk test,
+and an up-versus-down direction contrast.
 
 ---
 
-## Pipeline
-
-```bash
-pip install -r requirements.txt
-
-# 1. load one animal's MyISAM tables into a local MariaDB
-python scripts/load_animal.py --animal 9 --dir ~/Downloads/ani-emg-eeg-9
-
-# 2. convert -> Zarr, timestamps, QC, confound control, drift (one command)
-python scripts/run_animal.py --animal 9
-
-# 3. covariates Dr Carp asked for
-python scripts/add_prestim.py       --dsn "<dsn>" --zarr data/processed/animal9.zarr
-python scripts/add_prestim_bands.py --dsn "<dsn>" --zarr data/processed/animal9.zarr
-
-# 4. pooled encoder across animals, then the analyses
-python scripts/train_pooled.py      --zarrs data/processed/animal*.zarr
-python scripts/final_analysis.py    --ckpt outputs/encoder_pooled.pt --zarrs ...
-python scripts/coupling_analysis.py --ckpt outputs/encoder_pooled.pt --zarrs ...
-python scripts/updown_contrast.py   --ckpt outputs/encoder_pooled.pt --zarrs ...
-python scripts/prestim_coupling.py  --zarrs ...
-```
-
-`scripts/scan_animals.py` reads the tiny log files alone to classify an animal's
-conditioning direction (and, via the reward criterion, its strength) *before*
-downloading gigabytes of signal.
-
----
-
-## Controls implemented
-
-1. **M-wave** — stimulus efficacy, regressed out of every measure.
-2. **Pre-stimulus background** — motoneuron-pool excitability, 20 ms before the
-   stimulus, from frag0.
-3. **Baseline sham null** — split baseline-only data as a fake experiment.
-4. **Randomised trial-order null** — breaks real time structure, keeps the numbers.
-5. **Last-10-days baseline** — early baseline had settings changes.
-6. **Within-block cross-validation** — makes the coupling result drift-immune.
-7. **Up-vs-down direction contrast** — recording drift is direction-independent.
-
----
-
-## Zarr schema (per animal)
+## Repository
 
 ```
-animalN.zarr/
-  ecog              (N, 150)  float32   cortical window — model input
-  emg               (N, 150)  float32   soleus EMG — label source
-  hreflex           (N,)      float32   mean rectified amplitude, matched window
-  phase             (N,)      int64     0 = baseline, 1 = conditioning
-  time              (N,)      int64     unix seconds
-  day               (N,)      int64     day index (drift-per-day)
-  prestim_emg       (N,)      float32   pre-stimulus background
-  prestim_bands     (N, 6)    float32   pre-stimulus cortical log band power
-  prestim_emg_bands (N, 6)    float32   same for EMG (crosstalk control)
-  attrs: direction ("up"/"down"), animal
+scripts/     decoding, conversion, covariates, and every analysis
+src/         config, data loading, preprocessing, models, training, figures
+decoders/    original archive decoders (2006 / 2013 formats)
+notebooks/   starter notebook for loading and training
+outputs/     figures and per-animal results
+docs/        project page and report
+slides/      presentations
 ```
 
-Raw `.MYD`/`.MYI`/`.frm`, Zarr stores, and the local MariaDB datadir are
-gitignored — never commit data.
+Setup and per-animal instructions are in [SETUP.md](SETUP.md). The animal
+inventory and conditioning directions are in [ANIMAL_ROSTER.md](ANIMAL_ROSTER.md).
 
----
+Raw recordings are not included; they remain with NCAN. `.MYD`/`.MYI`/`.frm`
+archives, Zarr stores and the local database directory are gitignored.
 
-## Repo map
+## Data format notes
 
-```
-scripts/    load_animal, convert, run_animal, add_timestamps, add_prestim,
-            add_prestim_bands, scan_animals, reflex_measures, confound_control,
-            drift_over_time, final_analysis, coupling_analysis, prestim_coupling,
-            updown_contrast, train_pooled, validate_zarr, inspect_db
-src/        config, seed, data loaders, preprocessing, models (conv_ae + brainbert),
-            two-phase trainers, latent/UMAP + neuro figure analysis
-slides/     decks and talk scripts for the Carp meetings
-outputs/    figures, per-animal results, verdicts
-decoders/   original lab decoders (2006 / 2013) — see signal facts above
-```
+Samples are little-endian 16-bit integers in block channel order (soleus EMG
+first, then ECoG), at 2.441406 µV per unit. The archived decoder documents
+big-endian, which decodes to noise. Fragment 1 carries the 150-sample, 5 kHz
+response window used throughout; fragment 0 is one second of pre-stimulus signal
+at 1 kHz.
+
+## References
+
+Boulay CB, Chen XY, Wolpaw JR. Electrocorticographic activity over sensorimotor
+cortex and motor function in awake behaving rats. *J Neurophysiol* 113:2232–2241,
+2015.
+
+Thompson AK, Wolpaw JR. Operant conditioning of spinal reflexes: from basic
+science to clinical therapy. *Front Integr Neurosci* 8:25, 2014.

@@ -6,20 +6,12 @@ pipeline consumes:
     animalN.zarr/
       ecog     (N, 150)  float32
       emg      (N, 150)  float32
-      hreflex  (N,)      float32   # mean rectified amplitude, Carp's spec
-      phase    (N,)      int64     # conditioning phase 0..5
+      hreflex  (N,)      float32   # mean rectified amplitude, matched window
+      phase    (N,)      int64     # 0 = baseline, 1 = conditioning
 
-WHAT'S COMPLETE vs WHAT'S A HOOK
---------------------------------
-Complete: the Zarr writing, the label computation, batching, and the CLI.
-Hooks (3 functions marked `# HOOK`): reading raw trial rows, decoding the 2006
-blob, and parsing phases from the log table. These depend on the lab's exact
-table schema and `decoder_2006.py`, which are on the machine with the data, not
-here. SETUP.md walks Claude Code through completing them at Checkpoint 2/3, using
-the known constants below and the reference decode as a starting point.
-
-KNOWN 2006-FORMAT CONSTANTS (from the reverse-engineering work; verify against
-decoder_2006.py before trusting):
+Format constants below were established empirically and verified against the
+decoded waveform (a stimulus artifact followed by an M-wave and an H-reflex at
+the latencies the experimenters recorded in the log).
 """
 from __future__ import annotations
 
@@ -38,23 +30,20 @@ SIGNAL = {
     "sample_rate_hz": 5000,
     "window_samples": 150,       # 30 ms ERP window (Animal 9 / all 2006 animals)
     "ad2uv": 2.441406,           # int16 -> microvolts (confirmed: log type-5 entry)
-    "n_channels": 2,             # ch0 = SOLR EMG, ch1 = ECoG (CONFIRMED via decode)
-    "record_bytes": 8536,        # (unused — we read blobs via MySQL, not raw bytes)
-    "endian": "<",               # LITTLE-endian — CONFIRMED 2026-07-07. decoder_2006's
-                                 # "big-endian" docstring is WRONG for emg-eeg-9 (big
-                                 # decodes to pure noise; little gives clean M/H waves).
+    "n_channels": 2,             # ch0 = soleus EMG, ch1 = ECoG
+    "endian": "<",               # little-endian; the archived decoder documents
+                                 # big-endian, which decodes to noise.
 }
 
 # The ERP response lives in fragment 1 (150 samples @ 5 kHz). frag0/frag2 are the
 # 1 kHz baseline/late fragments and are not used for the model input.
 ERP_FRAGMENT = 1
-DATA_TABLE = "channel_data"      # real Elizan III table name (was generic `trials`)
+DATA_TABLE = "channel_data"
 LOG_TABLE = "log_data"
 
 
-# ------------------------------------------------------------------ HOOK 1  (DONE)
 def fetch_one_raw(engine):
-    """Return the raw frag1 blob for a single trial (Checkpoint-2 decode test)."""
+    """Return the raw frag1 blob for a single trial."""
     from sqlalchemy import text
     with engine.connect() as c:
         row = c.execute(text(
@@ -80,21 +69,11 @@ def iter_raw_trials(engine):
             yield row[0], row[1], row[2]
 
 
-# ------------------------------------------------------------------ HOOK 2
 def decode_trial(raw: bytes) -> dict:
-    """Decode one 2006 blob into {'ecog': (150,), 'emg': (150,)} in microvolts.
+    """Decode one blob into {'ecog': (150,), 'emg': (150,)} in microvolts.
 
-    HOOK: the authoritative decoder is the lab's `decoder_2006.py`. Import and
-    call it here once located:
-        from decoder_2006 import decode_record
-        ch = decode_record(raw)           # however it returns channels
-    The reference below matches the documented 2006 layout (big-endian int16,
-    block channel order: all of ch0 then all of ch1) and is a STARTING POINT to
-    verify against the real decoder on one trial — do not trust it blindly.
-
-    NOTE: Animal 9 (and likely all) need baseline subtraction using frag0 from
-    the PRECEDING record. That cross-record step belongs in iter_raw_trials /
-    a wrapper, not here. Flag at Checkpoint 2.
+    Little-endian int16 in block channel order: the first 150 samples are the
+    soleus EMG channel, the next 150 the cortical ECoG channel.
     """
     n = SIGNAL["window_samples"]
     dt = np.dtype(SIGNAL["endian"] + "i2")
@@ -107,18 +86,14 @@ def decode_trial(raw: bytes) -> dict:
     return {"emg": ch0, "ecog": ch1}   # confirm which channel is which!
 
 
-# ------------------------------------------------------------------ HOOK 3  (DONE)
-# Two phases only: 0 = Baseline (before conditioning), 1 = Conditioning (after the
-# onset marker). We deliberately DROP the old "Post" phase — the log's "stopped
-# conditioning" marker is unreliable (the reflex keeps changing after it). Onset is
-# taken from the FIRST "Start HRdown"/"Start HRup" marker, which also gives the
-# conditioning DIRECTION (down vs up) — the variable the multi-animal contrast needs.
+# Two phases: 0 = baseline, 1 = conditioning. The log's "stopped conditioning"
+# marker is unreliable (the reflex continues to change after it), so only the
+# onset marker is used. That marker also carries the conditioning direction.
 PHASE_NAMES = {0: "Baseline", 1: "Conditioning"}
 
 import re
-# Onset = first appearance of "HRdown"/"HRup" (the direction word right after HR).
-# Robust to phrasing: "Start HRdown" (animal 9) and "Started HRup conditioning"
-# (animal 12) both match; "HR interval: 6-9" does NOT (no down/up after HR).
+# Onset = first appearance of "HRdown"/"HRup". Matches both "Start HRdown" and
+# "Started HRup conditioning"; does not match "HR interval: 6-9".
 _ONSET = re.compile(r"hr\s*(down|up)", re.I)
 _UP = re.compile(r"\bhr\s*up\b|up-?cond", re.I)
 _DOWN = re.compile(r"\bhr\s*down\b|down-?cond", re.I)
@@ -162,7 +137,6 @@ def assign_phase(ts: int, boundaries) -> int:
     return pid
 
 
-# ------------------------------------------------------------------ complete
 def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
             limit: int | None = None):
     """Full conversion: decode all trials, label, phase, write Zarr."""
@@ -170,14 +144,14 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
     from sqlalchemy import create_engine
     eng = create_engine(dsn)
 
-    boundaries, direction = parse_phases(eng)       # HOOK 3 (type-15 log)
+    boundaries, direction = parse_phases(eng)       # from the type-15 log
     print(f"[convert] direction={direction}  boundaries(unix->phase)={boundaries}")
 
     ecog, emg, phase, times = [], [], [], []
     for i, (tid, raw, ts) in enumerate(iter_raw_trials(eng)):
         if limit and i >= limit:
             break
-        d = decode_trial(raw)                       # HOOK 2
+        d = decode_trial(raw)
         ecog.append(d["ecog"]); emg.append(d["emg"])
         phase.append(assign_phase(int(ts), boundaries))
         times.append(int(ts))                       # per-trial recording time
