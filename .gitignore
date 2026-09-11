@@ -30,3 +30,4 @@ q-*.jpg
 
 # jupyter
 .ipynb_checkpoints/
+outputs/**/*.pt
