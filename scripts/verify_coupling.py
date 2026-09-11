@@ -35,6 +35,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams.update({"font.size": 13, "axes.labelsize": 15, "axes.titlesize": 16,
+    "xtick.labelsize": 13, "ytick.labelsize": 13, "legend.fontsize": 12})
 import matplotlib.pyplot as plt
 
 from scripts.reflex_measures import find_windows, measures
@@ -144,7 +146,7 @@ def main():
     ax[0].set_xticks(x); ax[0].set_xticklabels(labels)
     ax[0].set_ylabel("cortex → reflex CV R²")
     ax[0].set_title("Tightened coupling estimate")
-    ax[0].legend(fontsize=8)
+    ax[0].legend(fontsize=12)
 
     X = np.array([c["xtalk"] for c in res])
     for i, c in enumerate(res):
@@ -153,7 +155,7 @@ def main():
     ax[1].axhline(0, color=GREY, ls=":")
     ax[1].set_ylabel("correlation, cortical power vs muscle power")
     ax[1].set_title("Crosstalk check — high values imply contamination")
-    ax[1].set_ylim(-1, 1); ax[1].legend(fontsize=7)
+    ax[1].set_ylim(-1, 1); ax[1].legend(fontsize=12)
     fig.tight_layout(); fig.savefig(out / "verification.png", dpi=145); plt.close(fig)
 
     L = ["=== VERIFICATION (Carp, 2026-08-12) ===", "",

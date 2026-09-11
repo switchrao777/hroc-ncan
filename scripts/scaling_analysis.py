@@ -33,6 +33,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams.update({"font.size": 13, "axes.labelsize": 15, "axes.titlesize": 16,
+    "xtick.labelsize": 13, "ytick.labelsize": 13, "legend.fontsize": 12})
 import matplotlib.pyplot as plt
 
 from scripts.reflex_measures import find_windows, measures

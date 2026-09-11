@@ -33,6 +33,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams.update({"font.size": 13, "axes.labelsize": 15, "axes.titlesize": 16,
+    "xtick.labelsize": 13, "ytick.labelsize": 13, "legend.fontsize": 12})
 import matplotlib.pyplot as plt
 
 from scripts.reflex_measures import find_windows, measures
@@ -117,7 +119,7 @@ def main():
          f"up: {[c['animal'] for c in ups]}   down: {[c['animal'] for c in dns]}", ""]
 
     # ---- behaviour (the positive control) -----------------------------------
-    fig, ax = plt.subplots(1, 2, figsize=(13.5, 5))
+    fig, ax = plt.subplots(1, 2, figsize=(10.5, 3.89))
     for c in cs:
         ax[0].plot(c["rel"], c["hpct"], "-o", ms=3, alpha=.55,
                    color=UP_C if c["direction"] == "up" else DOWN_C,
@@ -131,7 +133,7 @@ def main():
     ax[0].set_xlabel("day relative to conditioning onset")
     ax[0].set_ylabel("corrected H, % change")
     ax[0].set_title("BEHAVIOUR — down should fall, up should rise")
-    ax[0].legend(fontsize=7)
+    ax[0].legend(fontsize=12)
 
     # ---- cortex -------------------------------------------------------------
     for c in cs:
@@ -145,7 +147,7 @@ def main():
     ax[1].set_xlabel("day relative to conditioning onset")
     ax[1].set_ylabel("cortical drift from baseline")
     ax[1].set_title("CORTEX — do the groups differ?")
-    ax[1].legend(fontsize=8)
+    ax[1].legend(fontsize=12)
     fig.tight_layout(); fig.savefig(out / "updown_contrast.png", dpi=145); plt.close(fig)
 
     # ---- numbers ------------------------------------------------------------

@@ -40,6 +40,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams.update({"font.size": 13, "axes.labelsize": 15, "axes.titlesize": 16,
+    "xtick.labelsize": 13, "ytick.labelsize": 13, "legend.fontsize": 12})
 import matplotlib.pyplot as plt
 
 from scripts.reflex_measures import find_windows, measures
@@ -154,7 +156,7 @@ def main():
         ax.axhline(0, color="#cbd5e1", ls=":")
         ax.set_xlabel("day relative to conditioning onset"); ax.set_ylabel("cross-validated R²")
         ax.set_title(f"Animal {c['animal']} ({c['direction']}) — cortical coupling to the reflex")
-        ax.legend(fontsize=8); fig.tight_layout()
+        ax.legend(fontsize=12); fig.tight_layout()
         fig.savefig(out / f"coupling_{c['animal']}.png", dpi=140); plt.close(fig)
 
     if not res:
@@ -187,7 +189,7 @@ def main():
     ax.set_xlabel("day relative to conditioning onset")
     ax.set_ylabel("cortex→reflex cross-validated R²")
     ax.set_title("Does cortical coupling to the reflex change with conditioning?")
-    ax.legend(fontsize=7); fig.tight_layout()
+    ax.legend(fontsize=12); fig.tight_layout()
     fig.savefig(out / "coupling_group.png", dpi=145); plt.close(fig)
 
     # ---- stats --------------------------------------------------------------

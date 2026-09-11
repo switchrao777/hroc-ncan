@@ -2,7 +2,7 @@
 
 Machine-learning analysis of paired soleus EMG and sensorimotor ECoG recordings
 from the operant H-reflex conditioning paradigm, in collaboration with the
-National Center for Adaptive Neurotechnologies (NCAN), Wadsworth Center.
+National Center for Adaptive Neurotechnologies (NCAN), Stratton VA Medical Center, Albany, NY.
 
 **Project page:** [docs/index.html](docs/index.html) ·
 **Report:** [docs/HROC_Report.pdf](docs/HROC_Report.pdf) ·
@@ -28,7 +28,7 @@ on a single trial.
 
 Cortex contributes about 2% of H-reflex variance uniquely, once stimulus
 intensity (47%) and pre-stimulus excitability (1%) are accounted for. Animals
-that learned more show a larger increase in coupling (r = +0.71, n = 5), which
+that learned more show a larger increase in coupling (r = +0.64, n = 5), which
 the remaining recordings would be needed to confirm.
 
 ## Controls

@@ -37,9 +37,9 @@ b { color: #0f172a; }
 BODY = """
 <h1>Single-trial cortical prediction of the H-reflex during operant conditioning</h1>
 <p class="authors"><b>Suchith Rao</b><sup>1</sup> and <b>Tarun Senthil</b><sup>1</sup>,
-with <b>Dr. Jonathan S. Carp</b><sup>2</sup> and <b>Teresa [surname]</b><sup>2</sup></p>
+with <b>Dr. Jonathan S. Carp</b><sup>2</sup> and <b>Theresa M. Vaughan</b><sup>2</sup></p>
 <p class="affil"><sup>1</sup>Machine-learning analysis &nbsp;·&nbsp;
-<sup>2</sup>National Center for Adaptive Neurotechnologies (NCAN), Wadsworth Center,
+<sup>2</sup>National Center for Adaptive Neurotechnologies (NCAN), Stratton VA Medical Center,
 New York State Department of Health, Albany, NY</p>
 <p class="meta">Progress report &nbsp;·&nbsp; August 2026 &nbsp;·&nbsp;
 Code and data: github.com/switchrao777/hroc-ncan</p>
@@ -61,7 +61,7 @@ predicts single-trial H-reflex amplitude above a within-block shuffle null in 99
 101 blocks across all five animals (animal-level t(4) = 3.81, p = 0.019), contributing roughly 2% of
 reflex variance uniquely once stimulus and background are accounted for. The effect is
 small in magnitude but near-perfectly reliable. Across animals, the change in this coupling correlates
-with how much each animal learned (r = +0.71, n = 5), though the sample is not yet
+with how much each animal learned (r = +0.64, n = 5), though the sample is not yet
 sufficient for significance.
 </div>
 
@@ -117,13 +117,13 @@ training and test trials together and cancels.</p>
 <h2>3. Results</h2>
 <h3>3.1 Conditioning reproduces in both directions</h3>
 <p>After correction for stimulus and background, corrected H-reflex amplitude rises in
-up-conditioned animals and falls in down-conditioned animals, Three of five analysed animals meet the 20% criterion in the trained direction; the two
-that do not serve as internal controls below. We report change as log₂ fold change
-rather than percentage: percentage change divides by baseline amplitude, and one animal
-(A3) has a baseline H of 19.4 µV against 60–167 µV in the others, which inflates its
-percentage to +227%. On the log₂ scale its change (+1.71) is comparable in magnitude to
-the down-conditioned animals (−1.55, −1.46), and the measure is symmetric for increases
-and decreases.</p>
+up-conditioned animals and falls in down-conditioned animals. Three of five analysed
+animals meet the 20% criterion in the trained direction; the two that do not serve as
+internal controls below. Change is expressed as a percentage of the baseline level, which
+carries a caveat: one animal (A3) has a baseline H of 19.4 µV against 60–167 µV in the
+others, so its percentage change (+249%) overstates the underlying change relative to the
+other animals. The direction of change is unaffected. A symmetric measure (log₂ fold change
+of the covariate-matched reflex) is planned for the full sample.</p>
 """
 
 BODY2 = """
@@ -175,7 +175,7 @@ unlikely explanation.</p>
 <h3>3.6 The effect scales with learning</h3>
 <p>Animals differ in how much they learned, and two failed to reach criterion in the
 trained direction. Across animals, the change in cortical coupling from baseline to
-conditioning correlates with behavioural change (r = +0.709 on log₂ fold change, t = 1.74, n = 5). The two
+conditioning correlates with behavioural change (r = +0.64, t = 1.44, n = 5). The two
 successful animals for which coupling could be compared gained coupling (+0.023 and
 +0.022); the two unsuccessful animals did not (−0.012 and +0.000). The direction is
 that predicted if the coupling is tied to conditioning, but the sample is too small for
@@ -204,7 +204,7 @@ coupling strengthens with conditioning is not resolved at this sample size; the
 remaining down-conditioned animals would power that test.</p>
 
 <h2>Acknowledgements</h2>
-<p>We thank Dr. Jonathan S. Carp and Teresa [surname] of NCAN for guidance throughout,
+<p>We thank Dr. Jonathan S. Carp and Theresa M. Vaughan of NCAN for guidance throughout,
 and in particular for proposing the baseline sham control, the randomised-order
 control, the pre-stimulus excitability covariate, and the scaling analysis, each of
 which materially changed the conclusions. This work uses recordings collected in the
