@@ -93,10 +93,11 @@ def analyse(cfg, zp, ckpt, rng):
     onset = int(day[phase > 0].min()) if (phase > 0).any() else int(day.max() // 2)
     valid = M > 3 * bg
 
-    # remove stimulus + excitability from BOTH sides, so coupling is not shared drive
-    X = design(M, prestim)
-    Hc = residualise(H, X)
-    Zc = residualise(latents(cfg, ecog, ckpt), X)
+    # remove stimulus + excitability from BOTH sides, so coupling is not shared drive.
+    # Done WITHIN each block (the conservative estimate): removing them across all
+    # trials at once leaves between-block stimulus variance inside each block,
+    # which the cortical signal also tracks, and inflates R².
+    Z = latents(cfg, ecog, ckpt)
 
     block = (day // BLOCK_DAYS).astype(np.int64)
     ids, r2s, nulls, ns = [], [], [], []
@@ -104,7 +105,8 @@ def analyse(cfg, zp, ckpt, rng):
         sel = (block == b) & valid
         if sel.sum() < MIN_TRIALS:
             continue
-        Zb, yb = Zc[sel], Hc[sel]
+        Xb = design(M[sel], prestim[sel])
+        Zb, yb = residualise(Z[sel], Xb), residualise(H[sel], Xb)
         # standardise within block so scale drift cannot help or hurt
         Zb = (Zb - Zb.mean(0)) / (Zb.std(0) + 1e-8)
         yb = (yb - yb.mean()) / (yb.std() + 1e-8)
@@ -200,7 +202,7 @@ def main():
          f"{'animal':8s}{'dir':6s}{'baseR2':>9s}{'condR2':>9s}{'delta':>9s}{'null':>9s}"]
     for c in res:
         L.append(f"{'A'+c['animal']:8s}{c['direction']:6s}{c['base']:9.4f}{c['cond']:9.4f}"
-                 f"{c['delta']:+9.4f}{c['null_mean']:+9.4f}")
+                 f"{c['delta']:+9.4f}{c['null_mean']:+9.4f}   above null {int(np.sum(c['r2'] > c['null']))}/{int(np.sum(~np.isnan(c['r2'])))}")
     if len(d) > 1:
         se = d.std(ddof=1) / np.sqrt(len(d))
         t = d.mean() / (se + 1e-12)
@@ -211,6 +213,10 @@ def main():
         dd = np.array([c["delta"] for c in grp]); dd = dd[~np.isnan(dd)]
         if len(dd):
             L.append(f"  {nm:4s} group mean delta = {dd.mean():+.4f} (n={len(dd)})")
+    above = sum(int(np.sum(c["r2"] > c["null"])) for c in res)
+    total = sum(int(np.sum(~np.isnan(c["r2"]))) for c in res)
+    L.append(f"blocks where real R² exceeds its own shuffle: {above} of {total}")
+    L.append(f"mean within-block R² across animals: {np.mean([np.nanmean(c['r2']) for c in res]):.4f}")
     L += ["", "delta = conditioning R² minus baseline R². Null is a within-block label",
           "shuffle; real coupling must exceed it. Because train/test are inside one",
           "block, slow recording drift cannot produce a positive delta."]

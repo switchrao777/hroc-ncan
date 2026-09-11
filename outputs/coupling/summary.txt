@@ -3,16 +3,18 @@ encoder: outputs/encoder_pooled.pt   block = 5 days, 5-fold CV within block
 measures residualised on M-wave + pre-stimulus background
 
 animal  dir      baseR2   condR2    delta     null
-A9      down     0.0213   0.0125  -0.0088  -0.0025
-A10     down     0.1877   0.1769  -0.0108  -0.0186
-A11     down     0.0534   0.1761  +0.1228  -0.0145
-A3      up       0.0268   0.0660  +0.0392  -0.0045
-A4      up       0.1383   0.0959  -0.0424  -0.0055
+A9      down     0.0102   0.0075  -0.0028  -0.0025   above null 9/9
+A10     down     0.0539   0.0431  -0.0107  -0.0188   above null 35/35
+A11     down     0.0083   0.0306  +0.0223  -0.0147   above null 15/17
+A3      up       0.0257   0.0468  +0.0211  -0.0046   above null 20/20
+A4      up       0.0748   0.0757  +0.0009  -0.0055   above null 20/20
 
-change in coupling (all animals): mean +0.0200, t=0.69, n=5
+change in coupling (all animals): mean +0.0062, t=0.93, n=5
   -> coupling INCREASES with conditioning (not significant at this n)
-  up   group mean delta = -0.0016 (n=2)
-  down group mean delta = +0.0344 (n=3)
+  up   group mean delta = +0.0110 (n=2)
+  down group mean delta = +0.0029 (n=3)
+blocks where real R² exceeds its own shuffle: 99 of 101
+mean within-block R² across animals: 0.0367
 
 delta = conditioning R² minus baseline R². Null is a within-block label
 shuffle; real coupling must exceed it. Because train/test are inside one

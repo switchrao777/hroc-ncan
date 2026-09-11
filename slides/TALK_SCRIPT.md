@@ -1,6 +1,6 @@
 # Presentation script — NCAN group talk
 
-**Deck:** `HROC_Team_Presentation.pptx` · 34 slides · about 40 minutes  
+**Deck:** `HROC_Team_Presentation.pptx` · 34 slides · about 40 minutes
 **Presenters:** Suchith Rao and Tarun Senthil
 
 ---
@@ -10,29 +10,58 @@
 **The sentence the talk is built around:**
 > "The cortex carries a small but very reliable signal about the size of each individual reflex, and getting there meant setting aside a result that looked better."
 
-**Five numbers to know:**
+**Five numbers to know**
 
 | | |
 |---|---|
 | 2.7 million | trials decoded |
 | 99 of 101 | five-day windows where the real data beat its own shuffle |
-| t(4) = 3.81, p = 0.019 | the animal as the unit of analysis |
-| 2% | variance the cortex adds uniquely, once stimulus and background are known |
-| r = +0.64 | how much an animal learned vs how much its coupling changed (n = 5) |
+| t(4) = 3.81, p = 0.019 | the test, counting each animal once |
+| 2% | reflex variation the brain explains on its own, once stimulus and background are accounted for |
+| r = +0.64 | how much an animal learned vs how much its coupling changed (five animals) |
 
-**Split:** Suchith 1–9, 16–26, 31–34 · Tarun 10–15, 27–30. Hand over out loud.
+**Split:** Suchith 1–9, 16–26, 31–34 · Tarun 10–15, 27–30. Hand over out loud: "Tarun will take you through how we built it."
 
-**Slow down on:** 4 (Boulay et al.), 11 (the model), 19 (the within-window idea).
+**Slow down on:** 4 (what Boulay et al. found), 11 (the model), 19 (the within-window idea), 26 (the scaling graph).
+
+## How to present every graph
+
+Carp got lost on graphs in the last meeting when the result came before the axes. On every graph slide, in this order:
+1. **What the horizontal axis is.**
+2. **What the vertical axis is.**
+3. **What one dot, line or bar is**, and what the colours mean.
+4. **Then** the result.
+
+Point at the slide while you do it. The notes below already follow this order.
+
+## Say it this way
+
+| Instead of | Say |
+|---|---|
+| Zarr, chunked array format | "one file per animal, stored in small pieces so we can read any part without loading all of it" |
+| MyISAM / MySQL tables | "the lab's 2006 database files" |
+| big-endian / little-endian | "each number is stored as two bytes; the old script had their order backwards" |
+| R² | "the fraction of the trial-to-trial variation in reflex size the brain signal predicts" |
+| cross-validated | "always tested on trials the model did not see" |
+| residualise | "remove the influence of" |
+| permutation / shuffle null | "the same data with the pairings scrambled" |
+| latent / embedding | "the model's 48-number summary" |
+| RW | "the reward criterion: the value the reflex has to pass to earn a pellet" |
+| shock | **stimulus** or **stimulation** |
+| beat the criterion | **exceed** the criterion |
+| dead electrode | **failed** electrode |
+
+Avoid slang and colourful metaphors. Don't credit individual controls to Dr. Carp on stage. Thank him and Theresa Vaughan together at the end.
 
 ---
 
 ## Slide 1 — how big the reflex will be?   [SUCHITH]
 
-Thanks for having us. We're the machine-learning side of this project. Over the summer we took the archived paired EMG and ECoG recordings and asked one question: on any given trial, does the brain signal tell us anything about how big the reflex is going to be? I'll walk through what the data is, how we built the analysis, what we found — including one thing that didn't work — and where we think it goes.
+Thanks for having us. Tarun and I are the machine-learning side of this project. We worked with recordings from rats trained to change a spinal reflex: EMG, the electrical signal from the leg muscle, and ECoG, the signal from an electrode on the surface of the brain over sensorimotor cortex, both recorded on every trial. There are 2.7 million trials. Our one question: on any single trial, does the brain signal tell you anything about how big the reflex is going to be? I'll go through the data, how we built the analysis, what we found, including one result that did not hold up, and where it goes next.
 
 ## Slide 2 — Roadmap   [SUCHITH]
 
-Five parts. What the question is and what was already known. What the data actually is. How we built the analysis, including the model and the workflow, since I gather that part is of interest. What we found, which includes one result that didn't survive. And where we think it goes from here.
+Five parts: the question, the data, how we built it, what we found, and where it goes. About forty minutes. The results start around slide sixteen.
 
 ## Slide 3 — What the animals are doing   [SUCHITH]
 
@@ -52,7 +81,7 @@ Orientation before anything else. Every stimulus produces one trial — thirty m
 
 ## Slide 7 — First problem: the archive would not decode   [SUCHITH]
 
-First problem, and it took a while. We were given the tables and a decoder script that said each sample's two bytes are stored most-significant first — big-endian. Decoded that way, every trial is noise. The files are actually stored least-significant first — little-endian. The reason we trusted that wasn't that the output looked plausible; it's that the M-wave and H-reflex landed at exactly the latencies the experimenter had typed into the log in 2006 — MR interval two to four, HR interval six to nine. The data confirmed the notes and the notes confirmed the data.
+The first problem took a couple of weeks. The recordings were saved in 2006 in an old database format, with a script that was supposed to read them. Every number in the file is stored as two bytes, and the script had the order of those two bytes backwards. Read that way, every trial came out as noise. Read the other way round, the muscle response appears. The reason we trust it is not that it looked right. The M-wave and the H-reflex appeared at exactly the times the experimenter had typed into the log in 2006: two to four milliseconds and six to nine milliseconds. The data matched the notes, and the notes matched the data.
 
 ## Slide 8 — 6   [SUCHITH]
 
@@ -60,11 +89,11 @@ Six animals, three trained down and three up, forty-five to two hundred ten days
 
 ## Slide 9 — Who is in the study   [SUCHITH]
 
-Here's the roster. Six animals, three trained to increase the reflex and three to decrease it, with trial counts from two hundred eighty thousand up to six hundred thirty thousand. Three met the twenty percent criterion. Two changed less than that — and those two turn out to be useful, because they act as a negative control later. One had a failed electrode and is excluded from anything cortical.
+This is who is in the study. Each card is one animal. The coloured bar at the top says which way it was trained: blue down, orange up. Under the name is how many trials it has, from about two hundred eighty thousand to six hundred thirty thousand. The dot at the bottom says how it did. Three met the lab's twenty percent criterion: 9, 11 and 3. Two did not, 10 and 4. Their reflexes actually moved against their training, and they come back later as a comparison group. Animal 12's brain electrode had failed, so it is left out of anything involving the brain signal.
 
 ## Slide 10 — The pipeline, end to end   [TARUN]
 
-This is the whole data flow. Recover the old tables into a local database. Decode each trial into two channels of microvolts. Store as Zarr, which is a chunked array format that lets us read two point seven million trials without loading them into memory. Measure the physiology. Learn the representation. Then test it against controls. Four gigabytes in per animal, about three hundred megabytes out, and once it's set up it's two commands per animal.
+This is the whole process, left to right. First we load the 2006 files into a database on a laptop. Then we read each trial into two traces in microvolts, one for muscle and one for brain. Then we save each animal as one file in a format called Zarr. All that means is the data is stored in small pieces, so we can pull out any part of 2.7 million trials without loading all of it into memory. Then we measure the M-wave, the H-reflex and the background muscle activity. Then the model learns its summary of the brain signal, and finally everything is tested against the controls. The small grey labels are just the software used at each step; you do not need them to follow the talk. It is about four gigabytes in per animal and three hundred megabytes out, and once set up it is two commands per animal.
 
 ## Slide 11 — What the model actually is   [TARUN]
 
@@ -72,11 +101,11 @@ This is the model, and it's simpler than it sounds. On the left, one trial of br
 
 ## Slide 12 — Training it, and the one trap we avoided   [TARUN]
 
-Training details. Six hundred thousand trials pooled across five animals, twelve passes, about four minutes on a laptop GPU — these are small models. Reconstruction error halves and flattens. The trap we had to avoid: if you pool animals naively, the model learns to tell the animals apart, because they have different electrodes and different amplitudes. That's a recording artefact, not biology. So we standardise each animal separately before pooling. And the reason we train one model across all animals rather than one each: separate models would describe each brain in its own private vocabulary and you could never compare them. One shared model means a given pattern means the same thing in animal three as in animal eleven — which is what makes the group comparisons later legitimate.
+Some numbers on training. The model saw six hundred thousand brain-signal trials from five animals and went through them twelve times. That took about four minutes on a laptop, because this is a small model. The reconstruction error, meaning how far the rebuilt trace is from the real one, roughly halved and then levelled off, which is what you want to see. The trap is this: if you mix animals together without care, the easiest thing for the model to learn is which animal a trace came from, because each electrode has its own size and character. That is a property of the recording, not the biology. So we scale each animal's data to the same range before mixing. And we use one model for all animals rather than one each, so a given pattern means the same thing in every animal. That is what makes it fair to compare animals later.
 
 ## Slide 13 — Tech stack and daily workflow   [TARUN]
 
-The stack, in case it's useful. MariaDB for the archives, Zarr and NumPy for the arrays, PyTorch for the model running on Apple Silicon, scikit-learn and SciPy for the statistics, and matplotlib for figures. All Python, all open source, nothing exotic. Day to day the loop was: read the animal's log, load it, convert, look at the averaged trace to check the decode, run the analyses, commit the figures. Every figure in this talk regenerates from a single command — none of them were hand-edited, which matters when a number changes and six figures have to change with it.
+Very briefly, the software. Everything is free, open-source Python, and it all runs on a laptop. The names on the slide are for anyone who wants to repeat the work; you do not need them to follow the results. The daily routine was: read the animal's log, load its data, convert it, look at the average trace to check it decoded correctly, run the analyses, and save the figures. Every figure in this talk is produced by the code with one command. None were edited by hand, so when a number changed, every figure that used it changed too.
 
 ## Slide 14 — How the summer actually went   [TARUN]
 
@@ -88,15 +117,15 @@ This slide matters because getting it wrong cost us a result. Reflex size depend
 
 ## Slide 16 — Conditioning works, in both directions   [SUCHITH]
 
-We lead with behaviour because it's the check that has to pass before anything else counts. Each animal is aligned to its own training start day. Up-trained animals rise, down-trained fall. Three of five clear the twenty percent criterion in the trained direction, and the two that don't come back later as a negative control. And again — this is after removing stimulus and background, so it isn't the stimulus creeping up.
+First, the check that has to pass before anything else counts: did the animals learn? How to read the left graph: the horizontal axis is days, lined up so that zero is the day each animal's training began. Left of zero is baseline, right of zero is training. The vertical axis is the size of the H-reflex as a percent change from that animal's own baseline, after correcting for stimulus strength and background muscle activity. Thin lines are single animals, thick lines are group averages, red for up-trained and blue for down-trained. The dashed lines mark plus and minus twenty percent. Animals 9 and 11 fall and animal 3 rises, so three of five meet the twenty percent criterion in the direction they were trained. Animals 10 and 4 moved the other way; they serve as a comparison group later. One caution: this is a percent of baseline, so an animal with a small baseline looks bigger than it is. Animal 3's baseline is about nineteen microvolts, against sixty to a hundred and sixty in the others. The right-hand graph is the brain measure, which we come to next.
 
 ## Slide 17 — Two things change slowly over the same weeks   [SUCHITH]
 
-Now the hard part, and I want to be direct about it. Two things change slowly over the same weeks: the animal's learning, and the chronically implanted electrode. On the left, both curves go up. On the right is what the recording actually gives you — one curve, with no way to split it. Inside a single animal both are smooth functions of time, so no amount of analysis separates them. That's a limitation of the design rather than the data, and it shaped everything we did next.
+Now the central difficulty. Two things change slowly over the same weeks: what the animal has learned, and the implanted brain electrode itself, as tissue settles around it and the signal slowly shifts. These two graphs are a sketch of the idea, not data. On the left, both rise together over the weeks. On the right is what we actually record: one curve that mixes the two, with no way to pull them apart. Within one animal, learning and electrode change are both slow and steady, so no analysis can separate them. That is a limit of how the study was designed, not of the data, and it shaped everything we did next.
 
 ## Slide 18 — Our first approach did not survive its controls   [SUCHITH]
 
-Our first approach was the obvious one: measure how far the average brain state moves across training. It does move, and it looked convincing. But three tests say that movement is the recording rather than the animal. If you take baseline-only data and pretend half of it was training, it moves just as much, in five of six animals. If you shuffle which trial belongs to which day, nothing moves — so the measure itself is fine. And electrode drift doesn't care which direction you trained the animal, and there's no difference between the up and down groups. Those controls changed our conclusion. I'd rather show you this than not.
+Our first approach was the obvious one. Take the model's summary of the brain signal, average it for each day, and measure how far that average moves from baseline as training goes on. It does move, and at first it looked convincing. But three checks say the movement comes from the recording, not the animal. First, take only baseline days, before any training, and pretend the second half was training. Nothing happened in those days, yet the average moves just as much, in five of six animals. Second, shuffle which trial belongs to which day: then nothing moves, so the measure is not inventing movement. Third, electrode change does not depend on which way an animal was trained, but learning does, and the up-trained and down-trained groups do not differ. Those checks changed our conclusion, and we would rather show you that than leave it out.
 
 ## Slide 19 — So we asked a question that drift cannot fake   [SUCHITH]
 
@@ -108,15 +137,15 @@ And we don't just look at whether the prediction is good in absolute terms, beca
 
 ## Slide 21 — 99 of 101   [SUCHITH]
 
-And here's the finding. In ninety-nine of a hundred and one windows the real data beat its own shuffled version, and it holds in all five animals. On the statistics I want to be careful. Counting each window as independent would badly overstate it, because windows within an animal share an electrode and an animal. Counting the animal as the unit of analysis gives t of three point eight one on four degrees of freedom, p equals nought point nought one nine. So the effect is small in size but almost never absent — and I'd argue reliability is the more meaningful property here.
+This is the main finding. The graph first: the horizontal axis is days relative to the start of training. The vertical axis is the prediction score, R squared: the fraction of the trial-to-trial variation in reflex size that the brain signal predicts, always measured on trials the model did not see. Zero means no prediction. Each thin line is one animal; the thick lines are the up and down group averages. The number to take away is on the right. In 99 of 101 five-day windows, the real data beat its own shuffled version. If there were no real signal, real versus shuffled would be a coin flip in each window, so you would expect about half, not 99 of 101. It holds in all five animals. On the statistics: windows from the same animal share an electrode, so they are not independent, and we do not count them as if they were. The test we report counts each animal once: t equals 3.81 with four degrees of freedom, p equals 0.019. So the effect is small, but it almost never disappears.
 
 ## Slide 22 — How much does the brain actually explain?   [SUCHITH]
 
-Here is how the variance in reflex size divides up. The stimulus dominates at forty-seven percent. Background is one. About half is still unexplained, which is normal for single-trial physiology. The brain on its own looks like twenty-one percent, but almost all of that overlaps with the stimulus, because the stimulus drives both the cortical response and the reflex. Only the part that survives once the other two are in the model — about two percent — counts as a genuine cortical contribution. That's a small number and I don't want to oversell it.
+How much does the brain actually explain? The bar is all of the trial-to-trial variation in reflex size, a hundred percent from left to right. Stimulus strength, measured by the M-wave, accounts for forty-seven percent. Background muscle activity before the stimulus adds one percent. About half is unexplained, which is normal for single trials in an awake animal. The thin blue sliver is the brain's own contribution: two percent. The brain signal on its own seems to explain twenty-one percent, but almost all of that overlaps with the stimulus, because the stimulus drives both the brain response and the reflex. Only what is left after stimulus and background are accounted for counts as the brain's own contribution. Two percent is small, and we do not want to oversell it.
 
 ## Slide 23 — All five animals, all three measures   [SUCHITH]
 
-This is everything on one slide. On the left, behaviour: three animals passed the twenty percent line in the trained direction; the other two moved against their training. In the middle, the prediction score against its shuffled control — real in blue, shuffled in grey — and the real bar is higher in every animal. On the right, how many five-day windows beat their own shuffle: nine of nine, fifteen of seventeen, and three animals at a hundred percent. Ninety-nine of a hundred and one overall.
+All five animals and all three measures side by side. Left panel, behaviour: each bar is one animal, showing how much its reflex changed in the direction it was trained. Positive means it moved the way it was trained, up for an up-trained animal and down for a down-trained one. The dashed line is the twenty percent criterion. Animals 9, 11 and 3 pass it; animal 3's bar is cut off at the edge and labelled, because its small baseline makes its percentage very large. Animals 10 and 4 are negative: they moved against their training. Middle panel: each animal's prediction score, blue for the real data and grey for the same data shuffled. Blue is higher in every animal, and the grey bars sit at or just below zero, which is what a fair shuffle should give. Right panel: how many five-day windows beat their shuffle. Nine of nine, fifteen of seventeen, and the other three animals at every window: 99 of 101 in total.
 
 ## Slide 24 — Every control we applied   [SUCHITH]
 
@@ -124,15 +153,15 @@ These are the controls we applied. Five it survives, two it fails, and the two f
 
 ## Slide 25 — Is the brain electrode just picking up muscle?   [SUCHITH]
 
-The obvious objection is that both channels are recorded simultaneously, so maybe the cortical electrode is just picking up muscle. The test is to correlate cortical power against muscle power and see how much they move together. Muscle artefact lives at high frequency, so that's where contamination would show. Above a hundred hertz the correlation is plus nought point nought six — essentially zero. The low bands are slightly negative. And the cortical signal marginally leads the muscle, which is the acceptable direction. So we don't think this is contamination, though I'd welcome a better test.
+The obvious objection: both electrodes record at the same moment, so maybe the brain electrode is simply picking up the muscle. How to read this: the left graph compares each animal's prediction score under the earlier and the stricter correction, next to the shuffle. The right graph shows, for each frequency band from low on the left to high on the right, how closely brain-signal power and muscle power rise and fall together; near zero means they are independent. Muscle interference shows up at high frequencies, so that is where contamination would appear. Above a hundred hertz the correlation is plus 0.06, essentially zero. The low bands are slightly negative. And the brain signal slightly leads the muscle rather than following it, which is the direction you would expect if it is not contamination.
 
 ## Slide 26 — Does it scale with how much they learned?   [SUCHITH]
 
-This is the thread I think is most promising. Animals differ in how much they learned, and two failed outright — those become a built-in negative control. The correlation between how much an animal learned and how much its cortical coupling changed is plus nought point six four, and the two that failed show no increase. With five animals that's a direction rather than a result. Four more down-conditioned animals are next through the pipeline, and that is what would help settle it.
+This is the thread we think is most promising, and it is the graph that needs the most explaining, so let me go slowly. Each dot is one animal, red for up-trained and blue for down-trained. The horizontal axis is how much the animal learned: the percent change in its reflex in the direction it was trained. The dotted vertical line is twenty percent, so dots to the right of it met the criterion. In the left graph, the vertical axis is how well the brain signal predicts the reflex during training. In the right graph, the vertical axis is the change in that prediction from baseline to training, training minus baseline, so above zero means the brain became more predictive once training started. The right graph is the one that matters. The line slopes upward, with a correlation of plus 0.64: animals that learned more tended to gain more coupling. The two that did not meet criterion, 10 and 4, show no increase; 10 went down and 4 stayed flat. The exception is animal 9, which met criterion but did not gain. And animal 3 sits far to the right partly because of its small baseline. With five animals this points in a direction but does not settle it; that is what the remaining animals are for.
 
 ## Slide 27 — The metadata may be a measurement   [TARUN]
 
-One new thread, which came out of our last meeting. The reward threshold is adjusted by hand, day by day — raised when the rat exceeds it, lowered when it's struggling. That's effectively a staircase procedure, and it's a record of how hard the task was for that animal, written down independently of anything we measure from the electrodes. Right now our scaling result correlates two things measured from the same electrodes, which share noise. If cortical coupling instead tracks a behavioural record kept by hand at the time, that's a much harder result to dismiss. We'd like to build that next.
+A new thread. First, what the reward criterion is, because in the lab's logs it is written as RW. It is the value the reflex has to pass to earn a food pellet: above it for an up-trained animal, below it for a down-trained one. The experimenter resets it every day so the rat is rewarded on roughly thirty to forty percent of trials, the ones furthest in the trained direction. So the reward rate stays about the same while the requirement moves as the animal changes. In effect it is a staircase. That makes its history a record of how demanding the task was for each animal: effort and engagement, not just success, written down by a person at the time, independently of anything we measure from the electrodes. At the moment our scaling result compares two things measured from the same electrodes. If brain coupling also tracks a record kept by hand, that is a much harder result to dismiss. We would like to build this next.
 
 ## Slide 28 — Three things worth writing up   [TARUN]
 
@@ -166,14 +195,45 @@ Thank you, and our thanks to Dr. Carp and Theresa Vaughan for their guidance thr
 
 ## Questions to expect
 
-**"Is 2% of variance meaningful?"** — On size alone, modest. It is in every animal and in 99 of 101 windows after every control we could apply, and this is single-trial physiology in an awake animal. Whether it is biologically meaningful is a question for this group.
+**"This sounds like bootstrap statistics."** (Carp raised this last time)
+> "It's the same family of methods, but a different test. A bootstrap resamples to put error bars on an estimate. We scramble the pairing of brain signal and reflex, which destroys any real relationship, and ask whether the real data does better. Because windows from the same animal aren't independent, we don't test on the 99 of 101 count. The test counts each animal once: t(4) = 3.81, p = 0.019."
 
-**"Isn't 99 of 101 just counting non-independent windows?"** — Yes, which is why we don't test on it. The statistic treats each animal as one observation: t(4) = 3.81, p = 0.019. Dropping any single animal leaves t between 2.9 and 5.0.
+**"Is the behavioural change a difference or a ratio?"** (Carp raised this last time)
+> "It's a percent change from each animal's own baseline, so it's a ratio. An animal with a small baseline looks bigger than it is: animal 3's is about 19 microvolts, against 60 to 160 in the others. The direction of change isn't affected."
 
-**"Why is the R² lower than earlier?"** — Stimulus and background were first removed across all trials at once, which leaves stimulus variance inside each window. Removing them within each window gives 0.037. That is the number we stand behind.
+**"What does positive mean on the behaviour axis?"**
+> "Positive means the reflex moved the way that animal was trained: up for an up-trained animal, down for a down-trained one. Animals 10 and 4 are negative, so they moved against their training."
 
-**"Couldn't the cortical electrode be recording muscle?"** — Muscle artefact is high-frequency; above 100 Hz the correlation is +0.06, the low bands are slightly negative, and cortex marginally leads the muscle.
+**"Which animals were trained up and which down?"**
+> "Down: 9, 10 and 11. Up: 3, 4 and 12, and 12's brain electrode had failed. No other up-trained recording in the archive is usable, so the up group stays at two."
 
-**"Why only five animals?"** — Five are processed. Animals 7, 8, 13 and 14 (all down-conditioned) are next; the up group is limited to two usable animals.
+**"What is the reward criterion?"**
+> "It's the value the reflex has to pass for a pellet. It's reset daily so the rat is rewarded on about 30 to 40 percent of trials, so its history tracks how demanding the task was for that animal. We read it as effort and engagement, not success."
 
-**If you don't know:** "I don't want to guess — let me check and come back to you."
+**"Is 2% of variance meaningful?"**
+> "On size alone, it's modest. It's in every animal and in 99 of 101 windows after every control we could apply, and this is single-trial physiology in an awake animal. Whether it's biologically meaningful is a question we'd like this group's view on."
+
+**"Why is the prediction score lower than in earlier updates?"**
+> "Stimulus and background were first removed across all trials at once, which leaves stimulus variation inside each window, and the brain signal tracks the stimulus. Removing them inside each window gives 0.037. That's the number we stand behind."
+
+**"Couldn't the brain electrode be recording muscle?"**
+> "Muscle interference is high-frequency. Above 100 Hz the correlation between brain and muscle power is +0.06, the low bands are slightly negative, and the brain signal slightly leads the muscle."
+
+**"Why only five animals?"**
+> "Five are processed. Animals 7, 8, 13 and 14, all down-trained, are next."
+
+**If you don't know:**
+> "I don't want to guess at that. Let me check and come back to you."
+
+---
+
+## Timing
+
+| Part | Slides | Target |
+|---|---|---|
+| Question and data | 1–9 | 10 min |
+| How we built it | 10–15 | 8 min |
+| Results | 16–26 | 15 min |
+| Where it goes and close | 27–34 | 7 min |
+
+If you run long, shorten 13 (software) and 14 (timeline). Never rush 11, 19, 21 or 26.
