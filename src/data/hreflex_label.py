@@ -75,6 +75,49 @@ def compute_hreflex_label(
 
     return label[0] if single else label.astype(np.float32)
 
+def compute_window_label(
+    emg: np.ndarray,
+    cfg: SignalConfig,
+    window_ms: tuple[float, float],
+    baseline_window_ms: tuple[float, float] | None = None,
+) -> np.ndarray:
+    """Mean rectified EMG amplitude per trial for an arbitrary time window."""
+    single = emg.ndim == 1
+    x = emg[None, :] if single else emg
+    sr = cfg.sample_rate_hz
+
+    w0 = _ms_to_samples(window_ms[0], sr)
+    w1 = _ms_to_samples(window_ms[1], sr)
+
+    bw = baseline_window_ms or cfg.baseline_window_ms
+    b0 = _ms_to_samples(bw[0], sr)
+    b1 = _ms_to_samples(bw[1], sr)
+    b1 = max(b1, b0 + 1)
+
+    total_samples = x.shape[1]
+
+    w0 = max(0, w0)
+    w1 = min(total_samples, w1)
+    b0 = max(0, b0)
+    b1 = min(total_samples, b1)
+
+    if w1 <= w0:
+        raise ValueError(
+            f"empty EMG window: {window_ms} ms "
+            f"-> samples [{w0}, {w1})"
+        )
+
+    if b1 <= b0:
+        raise ValueError(
+            f"empty baseline window: {bw} ms "
+            f"-> samples [{b0}, {b1})"
+        )
+
+    baseline = x[:, b0:b1].mean(axis=1, keepdims=True)
+    corrected = x[:, w0:w1] - baseline
+    label = np.abs(corrected).mean(axis=1)
+
+    return label[0] if single else label.astype(np.float32)
 
 def suggest_window_from_average(
     emg: np.ndarray,

@@ -24,7 +24,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 
 from src.utils.config import Config
-from src.data.hreflex_label import compute_hreflex_label
+from src.data.hreflex_label import (
+
+    compute_hreflex_label,
+
+    compute_window_label,
+
+)
 
 SIGNAL = {
     "sample_rate_hz": 5000,
@@ -170,27 +176,47 @@ def convert(dsn: str, animal_id: str, out_path: str, cfg: Config,
         hreflex_window_ms=cfg.signal.hreflex_window_ms,
         baseline_window_ms=cfg.signal.baseline_window_ms,
     )
+    mwave = compute_window_label(
+        emg,
+        cfg.signal,
+        window_ms=cfg.signal.mwave_ms,
+        baseline_window_ms=cfg.signal.baseline_window_ms,
+    )
+
+    hm_ratio = np.full_like(hreflex, np.nan, dtype=np.float32)
+    valid_m = np.isfinite(mwave) & (np.abs(mwave) > 1e-6)
+    hm_ratio[valid_m] = hreflex[valid_m] / mwave[valid_m]
+
+    sr = cfg.signal.sample_rate_hz
+    b0 = int(round(cfg.signal.baseline_window_ms[0] / 1000.0 * sr))
+    b1 = int(round(cfg.signal.baseline_window_ms[1] / 1000.0 * sr))
+    b0 = max(0, b0)
+    b1 = min(emg.shape[1], max(b1, b0 + 1))
+    background = np.abs(emg[:, b0:b1]).mean(axis=1).astype(np.float32)
 
     out = Path(out_path)
     root = zarr.open(str(out), mode="w")
 
     def _write(name, arr):
-        # zarr 3.x API: create_array then assign (create_dataset was removed).
+        # zarr 3.x API: create_array then assign
         z = root.create_array(name, shape=arr.shape, dtype=arr.dtype)
         z[:] = arr
 
     _write("ecog", ecog.astype(np.float32))
     _write("emg", emg.astype(np.float32))
     _write("hreflex", hreflex.astype(np.float32))
+    _write("mwave", mwave.astype(np.float32))
+    _write("hm_ratio", hm_ratio.astype(np.float32))
+    _write("background", background.astype(np.float32))
     _write("phase", phase)
     _write("time", time_arr)                         # unix seconds per trial
     _write("day", day.astype(np.int64))              # day index for drift-per-day
-    root.attrs["direction"] = direction              # 'down' | 'up' | 'unknown'
-    root.attrs["animal"] = str(animal_id)
-    print(f"[convert] animal {animal_id} ({direction}-conditioned): "
+root.attrs["direction"] = direction              # 'down' | 'up' | 'unknown'
+root.attrs["animal"] = str(animal_id)
+print(f"[convert] animal {animal_id} ({direction}-conditioned): "
           f"wrote {ecog.shape[0]} trials ({day.max()+1} days) -> {out}")
     # per-phase counts for the human
-    for p in sorted(set(phase.tolist())):
+for p in sorted(set(phase.tolist())):
         print(f"   phase {p} ({PHASE_NAMES.get(p,'?')}): {(phase == p).sum()} trials")
 
 
