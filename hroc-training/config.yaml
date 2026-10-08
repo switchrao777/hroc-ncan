@@ -1,0 +1,41 @@
+# HROC autoencoder training config.
+# Tarun: to switch from the synthetic smoke test to real data, set
+#   data.use_synthetic: false
+#   data.zarr_path: /path/to/animal9.zarr
+# ...and nothing else needs to change.
+
+signal:
+  sample_rate_hz: 5000
+  window_samples: 150      # Animal 9 ERP window (30 ms). Use 250 for Animals 16/17.
+  ad2uv: 2.441406
+  mwave_ms: [2.0, 4.0]
+  hreflex_ms: [8.0, 10.0]
+
+data:
+  zarr_path: ""            # e.g. data/processed/animal9.zarr
+  use_synthetic: true      # <-- flip to false once the Zarr store exists
+  n_trials_synthetic: 12000
+  batch_size: 128
+  val_fraction: 0.15
+  num_workers: 0
+
+model:
+  encoder: conv_ae         # "conv_ae" (from scratch) | "brainbert" (pretrained-style)
+  latent_dim: 48           # Chad suggested 32-64
+  base_channels: 32        # conv_ae
+  # brainbert-only:
+  n_fft: 32
+  hop: 8
+  d_model: 128
+  n_heads: 4
+  n_layers: 4
+  brainbert_weights: ""    # path to real BrainBERT checkpoint (optional)
+
+train:
+  phase1_epochs: 15
+  phase2_epochs: 15
+  lr: 0.001
+  weight_decay: 0.00001
+  grad_clip: 1.0
+  seed: 42
+  out_dir: outputs

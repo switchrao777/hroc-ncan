@@ -1,0 +1,10 @@
+Phase silhouette score (latent space): 0.0245
+Centroid drift from Baseline per phase:
+  Baseline        0.0000
+  Down-cond 1     9.5977
+  Up-cond 1       9.5395
+  Freely Running  8.7057
+  Down-cond 2     10.5616
+  Up-cond 2       10.9596
+
+NOTE: SYNTHETIC data — validates the analysis, not a result.

@@ -1,0 +1,56 @@
+{
+  "config": {
+    "signal": {
+      "sample_rate_hz": 5000,
+      "window_samples": 150,
+      "ad2uv": 2.441406,
+      "mwave_ms": [
+        2.0,
+        4.0
+      ],
+      "hreflex_ms": [
+        8.0,
+        10.0
+      ]
+    },
+    "data": {
+      "zarr_path": "",
+      "use_synthetic": true,
+      "n_trials_synthetic": 12000,
+      "batch_size": 128,
+      "val_fraction": 0.15,
+      "num_workers": 0
+    },
+    "model": {
+      "encoder": "conv_ae",
+      "latent_dim": 48,
+      "base_channels": 32,
+      "n_fft": 32,
+      "hop": 8,
+      "d_model": 128,
+      "n_heads": 4,
+      "n_layers": 4,
+      "brainbert_weights": ""
+    },
+    "train": {
+      "phase1_epochs": 15,
+      "phase2_epochs": 15,
+      "lr": 0.001,
+      "weight_decay": 1e-05,
+      "grad_clip": 1.0,
+      "seed": 42,
+      "out_dir": "outputs"
+    }
+  },
+  "results": {
+    "silhouette": 0.024525776505470276,
+    "drift": [
+      0.0,
+      9.59770679473877,
+      9.539459228515625,
+      8.70566463470459,
+      10.561556816101074,
+      10.959567070007324
+    ]
+  }
+}
