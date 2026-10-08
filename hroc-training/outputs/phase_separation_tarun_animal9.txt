@@ -1,0 +1,8 @@
+Phase silhouette score (latent space): nan
+Centroid drift from Baseline per phase:
+  Baseline        0.0000
+  Down-cond 1     nan
+  Up-cond 1       nan
+  Freely Running  nan
+  Down-cond 2     nan
+  Up-cond 2       nan
