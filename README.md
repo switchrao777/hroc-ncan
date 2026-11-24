@@ -2,9 +2,11 @@
 
 **A self-supervised pipeline relating sensorimotor cortex activity to single-trial H-reflex size in rats**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24489072.svg)](https://doi.org/10.5281/zenodo.24489072)
+
 > Presented at **Neuroscience 2026 (Society for Neuroscience)**, Washington, D.C. — Late-Breaking Poster **LBP066.07**, Board C25, Session F.05 Brain-Machine Interface, November 17, 2026.
 > S. Rao, T. Senthil, C. Boulay, J. R. Wolpaw, T. M. Vaughan, J. S. Carp
-> [Abstract](https://www.abstractsonline.com/pp8/#!/21503/presentation/34791) · [Citation](#citation)
+> [Poster (Zenodo, DOI 10.5281/zenodo.24489072)](https://doi.org/10.5281/zenodo.24489072) · [Abstract](https://www.abstractsonline.com/pp8/#!/21503/presentation/34791) · [Citation](#citation)
 
 Machine-learning analysis of paired soleus EMG and sensorimotor ECoG recordings
 from the operant H-reflex conditioning paradigm, in collaboration with the
@@ -81,7 +83,7 @@ much each rat learned, followed by a full paper.
 
 If you use this pipeline, please cite:
 
-> Rao S, Senthil T, Boulay C, Wolpaw JR, Vaughan TM, Carp JS (2026). ARC--Autoencoder for Reflex Conditioning: A self-supervised pipeline relating sensorimotor cortex activity to single-trial H-reflex size in rats. Program No. LBP066.07. *Neuroscience 2026*. Washington, DC: Society for Neuroscience. Online.
+> Rao S, Senthil T, Boulay C, Wolpaw JR, Vaughan TM, Carp JS (2026). ARC--Autoencoder for Reflex Conditioning: A self-supervised pipeline relating sensorimotor cortex activity to single-trial H-reflex size in rats. Program No. LBP066.07. *Neuroscience 2026*. Washington, DC: Society for Neuroscience. Poster: https://doi.org/10.5281/zenodo.24489072
 
 ```bibtex
 @inproceedings{rao2026arc,
@@ -91,6 +93,7 @@ If you use this pipeline, please cite:
   publisher = {Society for Neuroscience},
   address   = {Washington, DC},
   note      = {Program No. LBP066.07},
+  doi       = {10.5281/zenodo.24489072},
   year      = {2026}
 }
 ```
